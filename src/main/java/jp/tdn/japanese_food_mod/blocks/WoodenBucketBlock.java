@@ -36,13 +36,13 @@ import javax.annotation.Nullable;
 import java.util.Random;
 
 public class WoodenBucketBlock extends HorizontalBlock {
-    protected static final VoxelShape SHAPE = VoxelShapes.or(Block.makeCuboidShape(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D));
+    protected static final VoxelShape SHAPE = VoxelShapes.or(Block.box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D));
     public static final DirectionProperty DIRECTION = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty FER = BooleanProperty.create("active");
 
     public WoodenBucketBlock(){
-        super(Properties.create(Material.WOOD, MaterialColor.BROWN).harvestTool(ToolType.AXE).hardnessAndResistance(2.0f));
-        this.setDefaultState(this.getDefaultState().with(DIRECTION, Direction.NORTH).with(FER, false));
+        super(Properties.of(Material.WOOD, MaterialColor.COLOR_BROWN).harvestTool(ToolType.AXE).strength(2.0f));
+        this.registerDefaultState(this.defaultBlockState().setValue(DIRECTION, Direction.NORTH).setValue(FER, Boolean.FALSE));
     }
 
     @Override
@@ -68,63 +68,63 @@ public class WoodenBucketBlock extends HorizontalBlock {
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        if(!worldIn.isRemote){
-            final TileEntity tileEntity = worldIn.getTileEntity(pos);
-            worldIn.playSound((PlayerEntity) null, (double) pos.getX(), (double) pos.getY(), (double) pos.getZ(), SoundEvents.BLOCK_CHEST_OPEN, SoundCategory.BLOCKS, 0.5f, worldIn.rand.nextFloat() * 0.1f + 0.9f);
+    public ActionResultType use(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+        if(!worldIn.isClientSide()){
+            final TileEntity tileEntity = worldIn.getBlockEntity(pos);
+            worldIn.playSound((PlayerEntity) null, (double) pos.getX(), (double) pos.getY(), (double) pos.getZ(), SoundEvents.CHEST_OPEN, SoundCategory.BLOCKS, 0.5f, worldIn.random.nextFloat() * 0.1f + 0.9f);
             if(tileEntity instanceof WoodenBucketTileEntity) NetworkHooks.openGui((ServerPlayerEntity) player, (WoodenBucketTileEntity) tileEntity, pos);
         }
         return ActionResultType.SUCCESS;
     }
 
     @Override
-    public void onReplaced(BlockState oldState, @Nonnull World worldIn, @Nonnull BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState oldState, @Nonnull World worldIn, @Nonnull BlockPos pos, BlockState newState, boolean isMoving) {
         if (oldState.getBlock() != newState.getBlock()) {
-            TileEntity tileEntity = worldIn.getTileEntity(pos);
+            TileEntity tileEntity = worldIn.getBlockEntity(pos);
             if (tileEntity instanceof WoodenBucketTileEntity) {
                 final ItemStackHandler inventory = ((WoodenBucketTileEntity) tileEntity).inventory;
                 for(int index = 0; index < inventory.getSlots(); ++index){
-                    InventoryHelper.spawnItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(index));
+                    InventoryHelper.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(index));
                 }
             }
-            super.onReplaced(oldState, worldIn, pos, newState, isMoving);
+            super.onRemove(oldState, worldIn, pos, newState, isMoving);
         }
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(DIRECTION, context.getPlacementHorizontalFacing().getOpposite());
+        return this.defaultBlockState().setValue(DIRECTION, context.getNearestLookingDirection().getOpposite());
     }
 
     @Override
-    public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
-        final TileEntity tileEntity = worldIn.getTileEntity(pos);
+    public int getAnalogOutputSignal(BlockState blockState, World worldIn, BlockPos pos) {
+        final TileEntity tileEntity = worldIn.getBlockEntity(pos);
         if(tileEntity instanceof WoodenBucketTileEntity) return ItemHandlerHelper.calcRedstoneFromInventory(((WoodenBucketTileEntity) tileEntity).inventory);
-        return super.getComparatorInputOverride(blockState, worldIn, pos);
+        return super.getAnalogOutputSignal(blockState, worldIn, pos);
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(DIRECTION, FER);
     }
 
     @Override
     @Nonnull
     public BlockState rotate(BlockState state, Rotation rot) {
-        return state.with(DIRECTION, rot.rotate(state.get(DIRECTION)));
+        return state.setValue(DIRECTION, rot.rotate(state.getValue(DIRECTION)));
     }
 
     @Override
     @Nonnull
     public BlockState mirror(BlockState state, Mirror mirrorIn) {
-        return state.rotate(mirrorIn.toRotation(state.get(DIRECTION)));
+        return state.rotate(mirrorIn.getRotation(state.getValue(DIRECTION)));
     }
 
     @Override
     public void animateTick(BlockState state, World worldIn, BlockPos pos, Random rand) {
-        if(state.get(FER)){
+        if(state.getValue(FER)){
             double posX = (double) pos.getX();
             double posY = (double) pos.getY() + 1.0D;
             double posZ = (double) pos.getZ();
@@ -134,7 +134,7 @@ public class WoodenBucketBlock extends HorizontalBlock {
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
+    public BlockRenderType getRenderShape(BlockState state) {
         return BlockRenderType.MODEL;
     }
 }

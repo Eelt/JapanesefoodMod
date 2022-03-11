@@ -40,8 +40,8 @@ public class OysterShellTileEntity extends TileEntity implements ITickableTileEn
 
     @Override
     public void tick() {
-        if(world == null || world.isRemote) return;
-        if(world.getFluidState(pos).isTagged(FluidTags.WATER) && getnoriRemaining() < maxNori){
+        if(level == null || level.isClientSide()) return;
+        if(level.getFluidState(worldPosition).is(FluidTags.WATER) && getnoriRemaining() < maxNori){
             if(++elapsedTime > timeToGrow){
                 elapsedTime = -1;
                 growNori();
@@ -50,27 +50,22 @@ public class OysterShellTileEntity extends TileEntity implements ITickableTileEn
     }
 
     @Override
-    public void func_230337_a_(BlockState state, CompoundNBT compound) {
-        super.func_230337_a_(state, compound);
+    public void load(BlockState state, CompoundNBT compound) {
+        super.load(state, compound);
         this.noriRemaining = compound.getShort("noriRemaining");
         this.elapsedTime = compound.getShort("elapsedTime");
     }
 
     @Override
     @Nonnull
-    public CompoundNBT write(CompoundNBT compound) {
+    public CompoundNBT save(CompoundNBT compound) {
         compound.putShort(NORI_REMAINING_TAG, noriRemaining);
         compound.putShort(ELAPSED_TIME_TAG, elapsedTime);
-        return super.write(compound);
+        return super.save(compound);
     }
 
     @Nonnull
     public CompoundNBT getUpdateTag(){
-        return this.write(new CompoundNBT());
-    }
-
-    @Override
-    public void remove() {
-        super.remove();
+        return this.save(new CompoundNBT());
     }
 }

@@ -29,12 +29,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class MicroScopeBlock extends HorizontalBlock {
-    protected static final VoxelShape SHAPE = VoxelShapes.or(Block.makeCuboidShape(4.0D, 0.0D, 4.0D, 12.0D, 16.0D,12.0D));
+    protected static final VoxelShape SHAPE = VoxelShapes.or(Block.box(4.0D, 0.0D, 4.0D, 12.0D, 16.0D,12.0D));
     public static final DirectionProperty DIRECTION = BlockStateProperties.HORIZONTAL_FACING;
     
     public MicroScopeBlock(){
-        super(Properties.create(Material.IRON, MaterialColor.IRON).doesNotBlockMovement().hardnessAndResistance(2.5f).sound(SoundType.METAL));
-        this.setDefaultState(this.getDefaultState().with(DIRECTION, Direction.NORTH));
+        super(Properties.of(Material.METAL, MaterialColor.METAL).noCollission().strength(2.5f).sound(SoundType.METAL));
+        registerDefaultState(this.defaultBlockState().setValue(DIRECTION, Direction.NORTH));
     }
 
     @Override
@@ -61,61 +61,61 @@ public class MicroScopeBlock extends HorizontalBlock {
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        if(!worldIn.isRemote){
-            final TileEntity tileEntity = worldIn.getTileEntity(pos);
+    public ActionResultType use(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+        if(!worldIn.isClientSide){
+            final TileEntity tileEntity = worldIn.getBlockEntity(pos);
             if(tileEntity instanceof MicroScopeTileEntity) NetworkHooks.openGui((ServerPlayerEntity) player, (MicroScopeTileEntity) tileEntity, pos);
         }
         return ActionResultType.SUCCESS;
     }
 
     @Override
-    public void onReplaced(BlockState oldState, @Nonnull World worldIn, @Nonnull BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState oldState, @Nonnull World worldIn, @Nonnull BlockPos pos, BlockState newState, boolean isMoving) {
         if (oldState.getBlock() != newState.getBlock()) {
-            TileEntity tileEntity = worldIn.getTileEntity(pos);
+            TileEntity tileEntity = worldIn.getBlockEntity(pos);
             if (tileEntity instanceof MicroScopeTileEntity) {
                 final ItemStackHandler inventory = ((MicroScopeTileEntity) tileEntity).inventory;
                 for(int index = 0; index < inventory.getSlots(); ++index){
-                    InventoryHelper.spawnItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(index));
+                    InventoryHelper.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(index));
                 }
             }
-            super.onReplaced(oldState, worldIn, pos, newState, isMoving);
+            super.onRemove(oldState, worldIn, pos, newState, isMoving);
         }
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(DIRECTION, context.getPlacementHorizontalFacing().getOpposite());
+        return this.defaultBlockState().setValue(DIRECTION, context.getNearestLookingDirection().getOpposite());
     }
 
     @Override
-    public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
-        final TileEntity tileEntity = worldIn.getTileEntity(pos);
+    public int getAnalogOutputSignal(BlockState blockState, World worldIn, BlockPos pos) {
+        final TileEntity tileEntity = worldIn.getBlockEntity(pos);
         if(tileEntity instanceof MicroScopeTileEntity) return ItemHandlerHelper.calcRedstoneFromInventory(((MicroScopeTileEntity) tileEntity).inventory);
-        return super.getComparatorInputOverride(blockState, worldIn, pos);
+        return super.getAnalogOutputSignal(blockState, worldIn, pos);
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(DIRECTION);
     }
 
     @Override
     @Nonnull
     public BlockState rotate(BlockState state, Rotation rot) {
-        return state.with(DIRECTION, rot.rotate(state.get(DIRECTION)));
+        return state.setValue(DIRECTION, rot.rotate(state.getValue(DIRECTION)));
     }
 
     @Override
     @Nonnull
     public BlockState mirror(BlockState state, Mirror mirrorIn) {
-        return state.rotate(mirrorIn.toRotation(state.get(DIRECTION)));
+        return state.setValue(DIRECTION, mirrorIn.mirror(state.getValue(DIRECTION)));
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
+    public BlockRenderType getRenderShape(BlockState state) {
         return BlockRenderType.MODEL;
     }
 }

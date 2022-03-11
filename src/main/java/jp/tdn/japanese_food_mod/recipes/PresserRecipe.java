@@ -33,12 +33,12 @@ public class PresserRecipe implements IRecipe<IInventory> {
     }
 
     public boolean matches(IInventory inventory, @Nonnull World worldIn){
-        return this.ingredient.test(inventory.getStackInSlot(0));
+        return this.ingredient.test(inventory.getItem(0));
     }
 
     @Override
     @Nonnull
-    public ItemStack getCraftingResult(@Nonnull IInventory inventory) {
+    public ItemStack assemble(@Nonnull IInventory inventory) {
         return new ItemStack(JPItems.COOKING_OIL.get());
     }
 
@@ -46,7 +46,7 @@ public class PresserRecipe implements IRecipe<IInventory> {
         return result;
     }
 
-    public boolean canFit(int width, int height){
+    public boolean canCraftInDimensions(int width, int height){
         return true;
     }
 
@@ -58,7 +58,7 @@ public class PresserRecipe implements IRecipe<IInventory> {
     }
 
     @Nonnull
-    public ItemStack getRecipeOutput(){
+    public ItemStack getResultItem(){
         return new ItemStack(JPItems.COOKING_OIL.get());
     }
 
@@ -89,29 +89,29 @@ public class PresserRecipe implements IRecipe<IInventory> {
 
         @Override
         @Nonnull
-        public PresserRecipe read(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json) {
+        public PresserRecipe fromJson(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json) {
             PresserRecipe recipe = new PresserRecipe(recipeId);
-            recipe.result = JSONUtils.getInt(json, "result");
-            recipe.cookTime = JSONUtils.getInt(json, "process_time", 50);
-            recipe.ingredient = Ingredient.deserialize(JSONUtils.getJsonObject(json, "ingredient"));
+            recipe.result = JSONUtils.getAsInt(json, "result");
+            recipe.cookTime = JSONUtils.getAsInt(json, "process_time", 50);
+            recipe.ingredient = Ingredient.fromJson(JSONUtils.getAsJsonObject(json, "ingredient"));
             return recipe;
         }
 
         @Nullable
         @Override
-        public PresserRecipe read(@Nonnull ResourceLocation recipeId, PacketBuffer buffer) {
+        public PresserRecipe fromNetwork(@Nonnull ResourceLocation recipeId, PacketBuffer buffer) {
             PresserRecipe recipe = new PresserRecipe(recipeId);
             recipe.cookTime = buffer.readVarInt();
             recipe.result = buffer.readVarInt();
-            recipe.ingredient = Ingredient.read(buffer);
+            recipe.ingredient = Ingredient.fromNetwork(buffer);
             return recipe;
         }
 
         @Override
-        public void write(PacketBuffer buffer, PresserRecipe recipe) {
+        public void toNetwork(PacketBuffer buffer, PresserRecipe recipe) {
             buffer.writeVarInt(recipe.cookTime);
             buffer.writeVarInt(recipe.result);
-            recipe.ingredient.write(buffer);
+            recipe.ingredient.toNetwork(buffer);
         }
     }
 }

@@ -10,7 +10,4 @@ public class ClamEntity extends ShellfishEntity {
     public ClamEntity(EntityType<? extends WaterMobEntity> type, World worldIn){
         super(JPEntities.CLAM, worldIn, JPItems.CLAM.get());
     }
-
-    protected void updateAir(int p_209207_1_) {
-    }
 }

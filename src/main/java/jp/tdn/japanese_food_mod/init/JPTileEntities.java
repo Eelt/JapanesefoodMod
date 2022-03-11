@@ -30,15 +30,15 @@ public class JPTileEntities {
      @SubscribeEvent
      public static void registerTileEntityTypes(@Nonnull final RegistryEvent.Register<TileEntityType<?>> event){
           event.getRegistry().registerAll(
-                  setup(TileEntityType.Builder.create(MicroScopeTileEntity::new, JPBlocks.MICRO_SCOPE.get()).build(null), "microscope"),
-                  setup(TileEntityType.Builder.create(WoodenBucketTileEntity::new, JPBlocks.WOODEN_BUCKET.get()).build(null), "wooden_bucket"),
-                  setup(TileEntityType.Builder.create(PresserTileEntity::new, JPBlocks.PRESSER.get()).build(null), "presser"),
-                  setup(TileEntityType.Builder.create(UnrefinedSoySauceTileEntity::new, JPBlocks.UNREFINED_SOY_SAUCE.get()).build(null), "unrefined_soy_sauce"),
-                  setup(TileEntityType.Builder.create(UnrefinedSakeTileEntity::new, JPBlocks.UNREFINED_SAKE.get()).build(null), "unrefined_sake"),
-                  setup(TileEntityType.Builder.create(OysterShellTileEntity::new, JPBlocks.OYSTER_SHELL.get()).build(null), "oyster_shell"),
-                  setup(TileEntityType.Builder.create(UnrefinedMirinTileEntity::new, JPBlocks.UNREFINED_MIRIN.get()).build(null), "unrefined_mirin"),
-                  setup(TileEntityType.Builder.create(FurnaceCauldronTileEntity::new, JPBlocks.FURNACE_CAULDRON.get()).build(null), "furnace_cauldron"),
-                  setup(TileEntityType.Builder.create(SoyHayTileEntity::new, JPBlocks.SOY_HAY.get()).build(null), "soy_hay")
+                  setup(TileEntityType.Builder.of(MicroScopeTileEntity::new, JPBlocks.MICRO_SCOPE.get()).build(null), "microscope"),
+                  setup(TileEntityType.Builder.of(WoodenBucketTileEntity::new, JPBlocks.WOODEN_BUCKET.get()).build(null), "wooden_bucket"),
+                  setup(TileEntityType.Builder.of(PresserTileEntity::new, JPBlocks.PRESSER.get()).build(null), "presser"),
+                  setup(TileEntityType.Builder.of(UnrefinedSoySauceTileEntity::new, JPBlocks.UNREFINED_SOY_SAUCE.get()).build(null), "unrefined_soy_sauce"),
+                  setup(TileEntityType.Builder.of(UnrefinedSakeTileEntity::new, JPBlocks.UNREFINED_SAKE.get()).build(null), "unrefined_sake"),
+                  setup(TileEntityType.Builder.of(OysterShellTileEntity::new, JPBlocks.OYSTER_SHELL.get()).build(null), "oyster_shell"),
+                  setup(TileEntityType.Builder.of(UnrefinedMirinTileEntity::new, JPBlocks.UNREFINED_MIRIN.get()).build(null), "unrefined_mirin"),
+                  setup(TileEntityType.Builder.of(FurnaceCauldronTileEntity::new, JPBlocks.FURNACE_CAULDRON.get()).build(null), "furnace_cauldron"),
+                  setup(TileEntityType.Builder.of(SoyHayTileEntity::new, JPBlocks.SOY_HAY.get()).build(null), "soy_hay")
           );
      }
 

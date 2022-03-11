@@ -10,7 +10,7 @@ import net.minecraftforge.common.PlantType;
 
 public class CropGrassBlock extends BushBlock {
     public CropGrassBlock(){
-        super(Properties.create(Material.PLANTS, MaterialColor.GREEN).doesNotBlockMovement().hardnessAndResistance(0f).sound(SoundType.CROP));
+        super(Properties.of(Material.PLANT, MaterialColor.GRASS).noCollission().strength(0f).sound(SoundType.GRASS));
     }
 
     @Override

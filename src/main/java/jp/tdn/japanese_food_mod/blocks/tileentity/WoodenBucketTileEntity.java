@@ -26,9 +26,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.RangedWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -71,7 +69,7 @@ public class WoodenBucketTileEntity extends TileEntity implements ITickableTileE
         @Override
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
-            WoodenBucketTileEntity.this.markDirty();
+            WoodenBucketTileEntity.this.setChanged();
         }
     };
 
@@ -107,7 +105,7 @@ public class WoodenBucketTileEntity extends TileEntity implements ITickableTileE
             input[index] = inventory.getStackInSlot(INPUT_SLOT[index]);
         }
         result = getResult(input);
-        return result.isPresent() && ItemStack.areItemsEqual(result.get(), stack);
+        return result.isPresent() && ItemStack.isSame(result.get(), stack);
     }
 
     private boolean isReturnOutput(final ItemStack stack){
@@ -123,17 +121,17 @@ public class WoodenBucketTileEntity extends TileEntity implements ITickableTileE
     }
 
     private Optional<WoodenBucketRecipe> getRecipe(final IInventory inventory){
-        return Objects.requireNonNull(world).getRecipeManager().getRecipe(WoodenBucketRecipe.RECIPE_TYPE, inventory, world);
+        return Objects.requireNonNull(level).getRecipeManager().getRecipeFor(WoodenBucketRecipe.RECIPE_TYPE, inventory, level);
     }
 
     private Optional<ItemStack> getResult(final ItemStack[] input){
         final Inventory dummyInventory = new Inventory(input);
-        return getRecipe(dummyInventory).map(recipe -> recipe.getCraftingResult(dummyInventory));
+        return getRecipe(dummyInventory).map(recipe -> recipe.assemble(dummyInventory));
     }
 
     @Override
     public void tick() {
-        if(world == null || world.isRemote) {
+        if(level == null || level.isClientSide()) {
             return;
         }
         boolean isActive = false;
@@ -177,9 +175,9 @@ public class WoodenBucketTileEntity extends TileEntity implements ITickableTileE
         }
 
         if(lastActive != isActive){
-            markDirty();
-            final BlockState newState = world.getBlockState(pos).with(WoodenBucketBlock.FER, isActive);
-            world.setBlockState(pos, newState);
+            setChanged();
+            final BlockState newState = level.getBlockState(getBlockPos()).setValue(WoodenBucketBlock.FER, isActive);
+            level.setBlockAndUpdate(getBlockPos(), newState);
             lastActive = isActive;
         }
     }
@@ -197,7 +195,7 @@ public class WoodenBucketTileEntity extends TileEntity implements ITickableTileE
             if (canInsertContainerItemIntoSlot) {
                 inventory.insertItem(slot, containerItem, false);
             } else {
-                InventoryHelper.spawnItemStack(Objects.requireNonNull(world), pos.getX(), pos.getY(), pos.getZ(), containerItem);
+                InventoryHelper.dropItemStack(Objects.requireNonNull(level), getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), containerItem);
             }
         }
     }
@@ -217,8 +215,8 @@ public class WoodenBucketTileEntity extends TileEntity implements ITickableTileE
     }
 
     @Override
-    public void func_230337_a_(BlockState state,CompoundNBT compound) {
-        super.func_230337_a_(state, compound);
+    public void load(BlockState state,CompoundNBT compound) {
+        super.load(state, compound);
         this.inventory.deserializeNBT(compound.getCompound(INVENTORY_TAG));
         this.fermentationTimeLeft = compound.getShort(FERMENTATION_TIME_LEFT);
         this.maxFermentationTime = compound.getShort(MAX_FERMENTATION_TIME);
@@ -226,8 +224,8 @@ public class WoodenBucketTileEntity extends TileEntity implements ITickableTileE
 
     @Override
     @Nonnull
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        super.save(compound);
         compound.put(INVENTORY_TAG, this.inventory.serializeNBT());
         compound.putShort(FERMENTATION_TIME_LEFT, this.fermentationTimeLeft);
         compound.putShort(MAX_FERMENTATION_TIME, this.maxFermentationTime);
@@ -237,19 +235,19 @@ public class WoodenBucketTileEntity extends TileEntity implements ITickableTileE
     @Override
     @Nonnull
     public CompoundNBT getUpdateTag(){
-        return this.write(new CompoundNBT());
+        return this.save(new CompoundNBT());
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
         inventoryCapabilityExternal.invalidate();
     }
 
     @Nonnull
     @Override
     public ITextComponent getDisplayName() {
-        return new TranslationTextComponent(JPBlocks.WOODEN_BUCKET.get().getTranslationKey());
+        return new TranslationTextComponent(JPBlocks.WOODEN_BUCKET.get().toString());
     }
 
     @Nonnull

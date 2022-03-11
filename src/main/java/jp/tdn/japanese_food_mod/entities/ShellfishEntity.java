@@ -28,7 +28,7 @@ public class ShellfishEntity extends WaterMobEntity {
     }
 
     @Override
-    public int getMaxSpawnedInChunk() {
+    public int getAmbientSoundInterval() {
         return 8;
     }
 
@@ -38,20 +38,20 @@ public class ShellfishEntity extends WaterMobEntity {
     }
 
     public static AttributeModifierMap.MutableAttribute registerAttributes() {
-        return MobEntity.func_233666_p_().func_233815_a_(Attributes.field_233818_a_, 5.0D).func_233815_a_(Attributes.field_233821_d_, 0.15D);
+        return MobEntity.createMobAttributes().add(Attributes.MAX_HEALTH, 5.0D).add(Attributes.MOVEMENT_SPEED, 0.15D);
     }
 
     @Override
     @Nonnull
-    public ActionResultType func_230254_b_(PlayerEntity player, Hand hand) {
-        ItemStack handStack = player.getHeldItem(hand);
+    public ActionResultType mobInteract(PlayerEntity player, Hand hand) {
+        ItemStack handStack = player.getItemInHand(hand);
         if(handStack.isEmpty()){
-            player.setHeldItem(hand, new ItemStack(interactItem));
-        }else if(!player.inventory.addItemStackToInventory(new ItemStack(interactItem))){
-            player.dropItem(new ItemStack(interactItem), false);
+            player.setItemInHand(hand, new ItemStack(interactItem));
+        }else if(!player.inventory.add(new ItemStack(interactItem))){
+            player.drop(new ItemStack(interactItem), false);
         }
         this.remove();
-        return ActionResultType.func_233537_a_(this.world.isRemote);
+        return ActionResultType.sidedSuccess(this.level.isClientSide);
     }
 
     public static boolean spawnHandler(EntityType<? extends ShellfishEntity> entityIn, IWorld worldIn, SpawnReason reason, BlockPos pos, Random random){

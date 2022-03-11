@@ -39,11 +39,11 @@ import java.util.Random;
 public class OysterShellBlock extends HorizontalBlock implements ILiquidContainer {
     public static IntegerProperty NORI = IntegerProperty.create("nori", 0, 2);
     public static DirectionProperty DIRECTION = BlockStateProperties.HORIZONTAL_FACING;
-    private static VoxelShape SHAPE = VoxelShapes.or(Block.makeCuboidShape(4.0D, 0.0D, 4.0D, 10.0D, 3.0D, 10.0D));
+    private static VoxelShape SHAPE = VoxelShapes.or(Block.box(4.0D, 0.0D, 4.0D, 10.0D, 3.0D, 10.0D));
 
     public OysterShellBlock(){
-        super(Properties.create(Material.ROCK, MaterialColor.CLAY).doesNotBlockMovement().hardnessAndResistance(2.5f).tickRandomly());
-        this.setDefaultState(this.getStateContainer().getBaseState().with(NORI, 0));
+        super(Properties.of(Material.PLANT, MaterialColor.CLAY).noCollission().strength(2.5f).randomTicks());
+        registerDefaultState(this.defaultBlockState().setValue(NORI, 0));
     }
 
     @Nullable
@@ -63,19 +63,19 @@ public class OysterShellBlock extends HorizontalBlock implements ILiquidContaine
     }
 
     @Override
-    public boolean isValidPosition(BlockState state, IWorldReader world, BlockPos pos) {
-        return world.hasWater(pos);
+    public boolean canSurvive(BlockState state, IWorldReader world, BlockPos pos) {
+        return world.isWaterAt(pos);
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult rayTrace) {
-        if(!worldIn.isRemote()){
+    public ActionResultType use(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult rayTrace) {
+        if(!worldIn.isClientSide){
             int level = 0;
-            TileEntity entity = worldIn.getTileEntity(pos);
+            TileEntity entity = worldIn.getBlockEntity(pos);
             if(entity instanceof OysterShellTileEntity){
                 if(!((OysterShellTileEntity) entity).isEmpty()){
                     ((OysterShellTileEntity) entity).useNori();
-                    player.inventory.addItemStackToInventory(new ItemStack(JPItems.NORI.get()));
+                    player.inventory.add(new ItemStack(JPItems.NORI.get()));
 
                     setNoriLevel(worldIn, pos, state, getLevel(((OysterShellTileEntity) entity).getnoriRemaining()));
                 }
@@ -87,7 +87,7 @@ public class OysterShellBlock extends HorizontalBlock implements ILiquidContaine
     @Override
     public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand) {
         super.tick(state, worldIn, pos, rand);
-        TileEntity entity = worldIn.getTileEntity(pos);
+        TileEntity entity = worldIn.getBlockEntity(pos);
         if(entity instanceof OysterShellTileEntity){
             setNoriLevel(worldIn, pos, state, getLevel(((OysterShellTileEntity) entity).getnoriRemaining()));
         }
@@ -106,47 +106,49 @@ public class OysterShellBlock extends HorizontalBlock implements ILiquidContaine
     }
 
     public void setNoriLevel(World world, BlockPos pos, BlockState state, int level){
-        world.setBlockState(pos, state.with(NORI, level));
+        world.setBlockAndUpdate(pos, state.setValue(NORI, level));
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(DIRECTION, context.getPlacementHorizontalFacing().getOpposite());
+        return this.defaultBlockState().setValue(DIRECTION, context.getNearestLookingDirection().getOpposite());
     }
 
     @Override
     @Nonnull
     public BlockState rotate(BlockState state, Rotation rot) {
-        return state.with(DIRECTION, rot.rotate(state.get(DIRECTION)));
+        return state.setValue(DIRECTION, rot.rotate(state.getValue(DIRECTION)));
     }
 
     @Override
     @Nonnull
     public BlockState mirror(BlockState state, Mirror mirrorIn) {
-        return state.rotate(mirrorIn.toRotation(state.get(DIRECTION)));
+        return state.setValue(DIRECTION, mirrorIn.mirror(state.getValue(DIRECTION)));
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(NORI, DIRECTION);
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
+    public BlockRenderType getRenderShape(BlockState state) {
         return BlockRenderType.MODEL;
     }
 
     public FluidState getFluidState(BlockState p_204507_1_) {
-        return Fluids.WATER.getStillFluidState(false);
+        return Fluids.WATER.getSource(false);
     }
 
-    public boolean canContainFluid(IBlockReader p_204510_1_, BlockPos p_204510_2_, BlockState p_204510_3_, Fluid p_204510_4_) {
+    @Override
+    public boolean canPlaceLiquid(IBlockReader p_204510_1_, BlockPos p_204510_2_, BlockState p_204510_3_, Fluid p_204510_4_) {
         return false;
     }
 
-    public boolean receiveFluid(IWorld p_204509_1_, BlockPos p_204509_2_, BlockState p_204509_3_, FluidState p_204509_4_) {
+    @Override
+    public boolean placeLiquid(IWorld p_204509_1_, BlockPos p_204509_2_, BlockState p_204509_3_, FluidState p_204509_4_) {
         return false;
     }
 }

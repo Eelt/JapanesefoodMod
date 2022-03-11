@@ -6,7 +6,7 @@ import net.minecraft.item.Item;
 
 public class FoodItem extends Item {
     public FoodItem(int hunger, float saturation){
-        super(new Properties().group(JPItems.ItemGroup_Japanese).food(new Food.Builder().hunger(hunger).saturation(saturation).build()));
+        super(new Properties().tab(JPItems.ItemGroup_Japanese).food(new Food.Builder().nutrition(hunger).saturationMod(saturation).build()));
     }
 
     public FoodItem(Item.Properties properties){

@@ -14,8 +14,8 @@ public class MicroScopeRecipeProcessor implements IComponentProcessor {
     @Override
     public void setup(IVariableProvider variables) {
         String recipeId = variables.get("recipe").asString();
-        RecipeManager manager = Minecraft.getInstance().world.getRecipeManager();
-        recipe = manager.getRecipe(new ResourceLocation(recipeId)).orElseThrow(IllegalArgumentException::new);
+        RecipeManager manager = Minecraft.getInstance().level.getRecipeManager();
+        recipe = manager.byKey(new ResourceLocation(recipeId)).orElseThrow(IllegalArgumentException::new);
     }
 
     @Override
@@ -23,9 +23,9 @@ public class MicroScopeRecipeProcessor implements IComponentProcessor {
         if(recipe == null){
             return null;
         }else if(key.equals("heading")){
-            return IVariable.wrap(recipe.getRecipeOutput().getDisplayName().getString());
+            return IVariable.wrap(recipe.getResultItem().getDisplayName().getString());
         }else if(key.equals("output")) {
-            return IVariable.from(recipe.getRecipeOutput());
+            return IVariable.from(recipe.getResultItem());
         }else if(key.startsWith("input")) {
             return IVariable.from(recipe.getIngredients().get(0));
         }

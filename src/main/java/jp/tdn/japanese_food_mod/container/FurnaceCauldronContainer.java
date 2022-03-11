@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.IntReferenceHolder;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
@@ -28,11 +29,46 @@ public class FurnaceCauldronContainer extends Container {
     public FurnaceCauldronContainer(final int windowId, final PlayerInventory playerInventory, final FurnaceCauldronTileEntity tileEntity){
         super(JPContainerTypes.FURNACE_CAULDRON, windowId);
         this.tileEntity = tileEntity;
-        this.canInteractWithCallable = IWorldPosCallable.of(Objects.requireNonNull(tileEntity.getWorld()), tileEntity.getPos());
+        this.canInteractWithCallable = IWorldPosCallable.create(Objects.requireNonNull(tileEntity.getLevel()), tileEntity.getBlockPos());
 
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.heatingTimeLeft, v -> tileEntity.heatingTimeLeft = (int) v));
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.maxHeatingTime, v -> tileEntity.maxHeatingTime = (int) v));
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.waterRemaining, v -> tileEntity.waterRemaining = v));
+        // Heating Time Left
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.heatingTimeLeft;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.heatingTimeLeft = i;
+            }
+        });
+
+        // Max Heating Left
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.maxHeatingTime;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.maxHeatingTime = i;
+            }
+        });
+
+        // Water Remaining
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.waterRemaining;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.waterRemaining = i;
+            }
+        });
 
         // InputSlot
         this.addSlot(new SlotItemHandler(tileEntity.inventory, FurnaceCauldronTileEntity.INPUT_SLOT, 12, 14));
@@ -67,7 +103,7 @@ public class FurnaceCauldronContainer extends Container {
     private static FurnaceCauldronTileEntity getTileEntity(final PlayerInventory playerInventory, final PacketBuffer data){
         Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
-        final TileEntity tileAtPos = playerInventory.player.world.getTileEntity(data.readBlockPos());
+        final TileEntity tileAtPos = playerInventory.player.level.getBlockEntity(data.readBlockPos());
         if(tileAtPos instanceof FurnaceCauldronTileEntity) {
             return (FurnaceCauldronTileEntity)tileAtPos;
         }
@@ -76,27 +112,27 @@ public class FurnaceCauldronContainer extends Container {
 
     @Override
     @Nonnull
-    public ItemStack transferStackInSlot(PlayerEntity player, int index) {
+    public ItemStack quickMoveStack(PlayerEntity player, int index) {
         ItemStack returnStack = ItemStack.EMPTY;
-        final Slot slot = this.inventorySlots.get(index);
-        if(slot != null && slot.getHasStack()){
-            final ItemStack slotStack = slot.getStack();
+        final Slot slot = this.slots.get(index);
+        if(slot != null && slot.hasItem()){
+            final ItemStack slotStack = slot.getItem();
             returnStack = slotStack.copy();
 
-            final int containerSlots = this.inventorySlots.size() - player.inventory.mainInventory.size();
+            final int containerSlots = this.slots.size() - player.inventory.items.size();
             if(index < containerSlots){
-                if(!mergeItemStack(slotStack, containerSlots, this.inventorySlots.size(), true)){
+                if(!moveItemStackTo(slotStack, containerSlots, this.slots.size(), true)){
                     return ItemStack.EMPTY;
                 }
-            }else if(!mergeItemStack(slotStack, 0, containerSlots, false)){
+            }else if(!moveItemStackTo(slotStack, 0, containerSlots, false)){
 
                 return ItemStack.EMPTY;
             }
 
             if(slotStack.getCount() == 0){
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             }else{
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if(slotStack.getCount() == returnStack.getCount()){
@@ -109,7 +145,7 @@ public class FurnaceCauldronContainer extends Container {
     }
 
     @Override
-    public boolean canInteractWith(@Nonnull final PlayerEntity player) {
-        return isWithinUsableDistance(canInteractWithCallable, player, JPBlocks.FURNACE_CAULDRON.get());
+    public boolean stillValid(@Nonnull final PlayerEntity player) {
+        return stillValid(canInteractWithCallable, player, JPBlocks.FURNACE_CAULDRON.get());
     }
 }

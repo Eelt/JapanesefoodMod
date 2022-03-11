@@ -15,45 +15,45 @@ public class MicroScopeScreen extends ContainerScreen<MicroScopeContainer> {
 
     public MicroScopeScreen(final MicroScopeContainer container, final PlayerInventory inventory, final ITextComponent title){
         super(container, inventory, title);
-        this.ySize = 191;
+        this.imageHeight = 191;
     }
 
     @Override
-    public void func_230430_a_(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        this.func_230446_a_(matrixStack);
-        super.func_230430_a_(matrixStack, mouseX, mouseY, partialTicks);
-        this.func_230459_a_(matrixStack, mouseX, mouseY);
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.renderTooltip(matrixStack, mouseX, mouseY);
     }
 
     @Override
-    protected void func_230451_b_(MatrixStack matrixStack, int mouseX, int mouseY) {
-        this.field_230712_o_.func_238422_b_(matrixStack, this.field_230704_d_, (float)(this.xSize / 2), 6.0f, 4210752);
-        this.field_230712_o_.func_238422_b_(matrixStack, this.playerInventory.getDisplayName(), 8.0F, (float) (this.ySize - 96 + 4), 4210752);
+    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
+        this.font.drawShadow(matrixStack, this.title, (float)(this.imageWidth / 2), 6.0f, 4210752);
+        this.font.drawShadow(matrixStack, this.inventory.getDisplayName(), 8.0F, (float) (this.imageHeight - 96 + 4), 4210752);
 
     }
 
     @Override
-    protected void func_230450_a_(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-        this.field_230706_i_.getTextureManager().bindTexture(BACKGROUND_TEXTURE);
+        this.minecraft.getTextureManager().bind(BACKGROUND_TEXTURE);
 
-        int startX = this.guiLeft;
-        int startY = this.guiTop;
+        int startX = this.width;
+        int startY = this.height;
 
-        this.func_238474_b_(matrixStack , startX, startY, 0, 0, this.xSize, this.ySize);
+        this.blit(matrixStack , startX, startY, 0, 0, this.width, this.height);
 
-        final MicroScopeTileEntity tileEntity = container.tileEntity;
+        final MicroScopeTileEntity tileEntity = menu.tileEntity;
         if(tileEntity.identifiedTimeLeft > 0){
             int arrowHeight = getIdentifiedTimeScaled();
-            this.func_238474_b_(
+            this.blit(
                     matrixStack,
                     startX + 87, startY + 44,
                     176, 0,
                     27, 28 - arrowHeight
                     );
         }else{
-            this.func_238474_b_(
+            this.blit(
                     matrixStack,
                     startX + 87, startY + 44,
                     176, 0,
@@ -114,7 +114,7 @@ public class MicroScopeScreen extends ContainerScreen<MicroScopeContainer> {
 //    }
 
     private int getIdentifiedTimeScaled(){
-        final MicroScopeTileEntity tileEntity = this.container.tileEntity;
+        final MicroScopeTileEntity tileEntity = this.menu.tileEntity;
         final short identifiedTimeLeft = tileEntity.identifiedTimeLeft;
         final short maxIdentifiedTime = tileEntity.maxIdentifiedTime;
         if(identifiedTimeLeft <= 0 || maxIdentifiedTime <= 0) return 0;

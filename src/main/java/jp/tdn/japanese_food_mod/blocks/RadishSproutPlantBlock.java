@@ -10,12 +10,12 @@ import javax.annotation.Nonnull;
 
 public class RadishSproutPlantBlock extends CropsBlock{
     public RadishSproutPlantBlock(){
-        super(Properties.create(Material.PLANTS).doesNotBlockMovement().tickRandomly().hardnessAndResistance(0f).sound(SoundType.CROP));
+        super(Properties.of(Material.PLANT).noCollission().randomTicks().strength(0f).sound(SoundType.CROP));
     }
 
     @Override
     @Nonnull
-    protected IItemProvider getSeedsItem(){
+    protected IItemProvider getBaseSeedId(){
         return JPItems.RADISH_SPROUT_SEED.get();
     }
 

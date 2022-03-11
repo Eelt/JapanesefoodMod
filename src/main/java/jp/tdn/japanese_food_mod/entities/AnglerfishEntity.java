@@ -18,13 +18,13 @@ public class AnglerfishEntity extends AbstractFishEntity {
     }
 
     @Override
-    protected ItemStack getFishBucket() {
+    protected ItemStack getBucketItemStack() {
         return null;
     }
 
     @Override
     protected SoundEvent getFlopSound() {
-        return SoundEvents.ENTITY_COD_FLOP;
+        return SoundEvents.COD_FLOP;
     }
 
     @Override
@@ -34,6 +34,6 @@ public class AnglerfishEntity extends AbstractFishEntity {
     }
 
     public static AttributeModifierMap.MutableAttribute getAttributeMap() {
-        return MobEntity.func_233666_p_().func_233815_a_(Attributes.field_233818_a_, 6.0D).func_233815_a_(Attributes.field_233821_d_, 0.3D);
+        return MobEntity.createMobAttributes().add(Attributes.MAX_HEALTH, 6.0D).add(Attributes.MOVEMENT_SPEED, 0.3D);
     }
 }

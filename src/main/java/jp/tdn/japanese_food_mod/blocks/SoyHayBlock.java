@@ -23,8 +23,8 @@ public class SoyHayBlock extends HayBlock {
     public static BooleanProperty COMPLETION = BooleanProperty.create("comp");
 
     public SoyHayBlock(){
-        super(Properties.create(Material.ORGANIC, MaterialColor.RED).hardnessAndResistance(0.5F).sound(SoundType.PLANT));
-        this.setDefaultState(this.getDefaultState().with(COMPLETION, false).with(AXIS, Direction.Axis.Y));
+        super(Properties.of(Material.PLANT, MaterialColor.COLOR_RED).strength(0.5F).sound(SoundType.CROP));
+        this.registerDefaultState(this.defaultBlockState().setValue(COMPLETION, false).setValue(AXIS, Direction.Axis.Y));
     }
 
     @Override
@@ -40,7 +40,7 @@ public class SoyHayBlock extends HayBlock {
 
     @Override
     public void animateTick(BlockState state, World world, BlockPos pos, Random random) {
-        if(state.get(COMPLETION)){
+        if(state.getValue(COMPLETION)){
             double posX = (double) pos.getX() + random.nextDouble();
             double posY = (double) pos.getY() + 1.0D;
             double posZ = (double) pos.getZ() + random.nextDouble();
@@ -49,8 +49,8 @@ public class SoyHayBlock extends HayBlock {
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(COMPLETION);
     }
 }

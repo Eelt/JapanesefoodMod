@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.IntReferenceHolder;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
@@ -27,12 +28,59 @@ public class PresserContainer extends Container {
     public PresserContainer(final int windowId, final PlayerInventory playerInventory, final PresserTileEntity tileEntity){
         super(JPContainerTypes.PRESSER, windowId);
         this.tileEntity = tileEntity;
-        this.canInteractWithCallable = IWorldPosCallable.of(Objects.requireNonNull(tileEntity.getWorld()), tileEntity.getPos());
+        this.canInteractWithCallable = IWorldPosCallable.create(Objects.requireNonNull(tileEntity.getLevel()), tileEntity.getBlockPos());
 
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.pressedTimeLeft, v -> tileEntity.pressedTimeLeft = (short)v));
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.maxPressedTime, v -> tileEntity.maxPressedTime = (short)v));
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.oilRemaining, v -> tileEntity.oilRemaining = (short)v));
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.maxOilRemaining, v -> tileEntity.maxOilRemaining = (short)v));
+        // Pressed time left
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.pressedTimeLeft;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.pressedTimeLeft = (short)i;
+            }
+        });
+
+        // Max pressed time
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.maxPressedTime;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.maxPressedTime = (short) i;
+            }
+        });
+
+        // Oil Remaining
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.oilRemaining;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.oilRemaining = (short) i;
+            }
+        });
+
+        // Max oil remaining
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.maxOilRemaining;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.maxOilRemaining = (short) i;
+            }
+        });
 
         this.addSlot(new SlotItemHandler(tileEntity.inventory, PresserTileEntity.INPUT_SLOT, 34, 8));
         this.addSlot(new SlotItemHandler(tileEntity.inventory, PresserTileEntity.OUTPUT_SLOT, 135, 55));
@@ -57,35 +105,35 @@ public class PresserContainer extends Container {
     private static PresserTileEntity getTileEntity(final PlayerInventory playerInventory, final PacketBuffer data){
         Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
-        final TileEntity tileAtPos = playerInventory.player.world.getTileEntity(data.readBlockPos());
+        final TileEntity tileAtPos = playerInventory.player.level.getBlockEntity(data.readBlockPos());
         if(tileAtPos instanceof PresserTileEntity) return (PresserTileEntity)tileAtPos;
         throw new IllegalStateException("Tile entity is not correct" + tileAtPos);
     }
 
     @Override
     @Nonnull
-    public ItemStack transferStackInSlot(PlayerEntity player, int index) {
+    public ItemStack quickMoveStack(PlayerEntity player, int index) {
         ItemStack returnStack = ItemStack.EMPTY;
-        final Slot slot = this.inventorySlots.get(index);
-        if(slot != null && slot.getHasStack()){
-            final ItemStack slotStack = slot.getStack();
+        final Slot slot = this.slots.get(index);
+        if(slot != null && slot.hasItem()){
+            final ItemStack slotStack = slot.getItem();
             returnStack = slotStack.copy();
 
-            final int containerSlots = this.inventorySlots.size() - player.inventory.mainInventory.size();
+            final int containerSlots = this.slots.size() - player.inventory.items.size();
             if(index < containerSlots){
-                if(!mergeItemStack(slotStack, containerSlots, this.inventorySlots.size(), true)){
+                if(!moveItemStackTo(slotStack, containerSlots, this.slots.size(), true)){
                     return ItemStack.EMPTY;
                 }
-            }else if(!mergeItemStack(slotStack, 0, containerSlots, false)){
+            }else if(!moveItemStackTo(slotStack, 0, containerSlots, false)){
 
                 return ItemStack.EMPTY;
             }
 
             if(slotStack.getCount() == 0){
 
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             }else{
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if(slotStack.getCount() == returnStack.getCount()){
@@ -98,7 +146,7 @@ public class PresserContainer extends Container {
     }
 
     @Override
-    public boolean canInteractWith(@Nonnull final PlayerEntity player) {
-        return isWithinUsableDistance(canInteractWithCallable, player, JPBlocks.PRESSER.get());
+    public boolean stillValid(@Nonnull final PlayerEntity player) {
+        return stillValid(canInteractWithCallable, player, JPBlocks.PRESSER.get());
     }
 }

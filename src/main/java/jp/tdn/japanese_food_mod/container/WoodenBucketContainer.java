@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.IntReferenceHolder;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
@@ -27,10 +28,33 @@ public class WoodenBucketContainer extends Container {
     public WoodenBucketContainer(final int windowId, final PlayerInventory playerInventory, final WoodenBucketTileEntity tileEntity){
         super(JPContainerTypes.WOODEN_BUCKET, windowId);
         this.tileEntity = tileEntity;
-        this.canInteractWithCallable = IWorldPosCallable.of(Objects.requireNonNull(tileEntity.getWorld()), tileEntity.getPos());
+        this.canInteractWithCallable = IWorldPosCallable.create(Objects.requireNonNull(tileEntity.getLevel()), tileEntity.getBlockPos());
 
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.fermentationTimeLeft, v -> tileEntity.fermentationTimeLeft = (short)v));
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.maxFermentationTime, v -> tileEntity.maxFermentationTime = (short)v));
+        // Fermentation time left
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.fermentationTimeLeft;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.fermentationTimeLeft = (short)i;
+            }
+        });
+
+        // Max Fermentation Time
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.maxFermentationTime;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.maxFermentationTime = (short)i;
+            }
+        });
 
         // InputSlot
         final int inputStartX = 21;
@@ -72,7 +96,7 @@ public class WoodenBucketContainer extends Container {
     private static WoodenBucketTileEntity getTileEntity(final PlayerInventory playerInventory, final PacketBuffer data){
         Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
-        final TileEntity tileAtPos = playerInventory.player.world.getTileEntity(data.readBlockPos());
+        final TileEntity tileAtPos = playerInventory.player.level.getBlockEntity(data.readBlockPos());
         if(tileAtPos instanceof WoodenBucketTileEntity) {
             return (WoodenBucketTileEntity)tileAtPos;
         }
@@ -81,27 +105,27 @@ public class WoodenBucketContainer extends Container {
 
     @Override
     @Nonnull
-    public ItemStack transferStackInSlot(PlayerEntity player, int index) {
+    public ItemStack quickMoveStack(PlayerEntity player, int index) {
         ItemStack returnStack = ItemStack.EMPTY;
-        final Slot slot = this.inventorySlots.get(index);
-        if(slot != null && slot.getHasStack()){
-            final ItemStack slotStack = slot.getStack();
+        final Slot slot = this.slots.get(index);
+        if(slot != null && slot.hasItem()){
+            final ItemStack slotStack = slot.getItem();
             returnStack = slotStack.copy();
 
-            final int containerSlots = this.inventorySlots.size() - player.inventory.mainInventory.size();
+            final int containerSlots = this.slots.size() - player.inventory.items.size();
             if(index < containerSlots){
-                if(!mergeItemStack(slotStack, containerSlots, this.inventorySlots.size(), true)){
+                if(!moveItemStackTo(slotStack, containerSlots, this.slots.size(), true)){
                     return ItemStack.EMPTY;
                 }
-            }else if(!mergeItemStack(slotStack, 0, containerSlots, false)){
+            }else if(!moveItemStackTo(slotStack, 0, containerSlots, false)){
 
                 return ItemStack.EMPTY;
             }
 
             if(slotStack.getCount() == 0){
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             }else{
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if(slotStack.getCount() == returnStack.getCount()){
@@ -114,7 +138,7 @@ public class WoodenBucketContainer extends Container {
     }
 
     @Override
-    public boolean canInteractWith(@Nonnull final PlayerEntity player) {
-        return isWithinUsableDistance(canInteractWithCallable, player, JPBlocks.WOODEN_BUCKET.get());
+    public boolean stillValid(@Nonnull final PlayerEntity player) {
+        return stillValid(canInteractWithCallable, player, JPBlocks.WOODEN_BUCKET.get());
     }
 }

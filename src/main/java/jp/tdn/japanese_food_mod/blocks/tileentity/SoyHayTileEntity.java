@@ -23,35 +23,31 @@ public class SoyHayTileEntity extends TileEntity implements ITickableTileEntity 
 
     @Override
     public void tick() {
-        if(world == null || world.isRemote)return;
+        if(level == null || level.isClientSide())return;
 
         if(getFermentLeftTime() > 0){
             --fermentLeftTime;
         }else{
-            world.setBlockState(pos, world.getBlockState(pos).with(SoyHayBlock.COMPLETION, true));
+            level.setBlockAndUpdate(getBlockPos(), level.getBlockState(worldPosition).setValue(SoyHayBlock.COMPLETION, true));
         }
     }
 
     @Override
-    public void func_230337_a_(BlockState state, CompoundNBT compound) {
-        super.func_230337_a_(state, compound);
+    public void load(BlockState state, CompoundNBT compound) {
+        super.load(state, compound);
         this.fermentLeftTime = compound.getShort("fermentLeftTime");
     }
 
     @Override
     @Nonnull
-    public CompoundNBT write(CompoundNBT compound) {
+    public CompoundNBT save(CompoundNBT compound) {
         compound.putShort(FERMENT_LEFT_TIME_TAG, fermentLeftTime);
-        return super.write(compound);
+        return super.save(compound);
     }
 
     @Nonnull
     public CompoundNBT getUpdateTag(){
-        return this.write(new CompoundNBT());
+        return this.save(new CompoundNBT());
     }
 
-    @Override
-    public void remove() {
-        super.remove();
-    }
 }

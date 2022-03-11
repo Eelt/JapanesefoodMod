@@ -15,19 +15,19 @@ import javax.annotation.Nonnull;
 
 public class RicePlantBlock extends CropsBlock{
     public RicePlantBlock(){
-        super(Properties.create(Material.PLANTS).doesNotBlockMovement().tickRandomly().hardnessAndResistance(0f).sound(SoundType.CROP));
+        super(Properties.of(Material.PLANT).noCollission().randomTicks().strength(0f).sound(SoundType.CROP));
     }
 
     @Override
     @Nonnull
-    protected IItemProvider getSeedsItem(){
+    protected IItemProvider getBaseSeedId(){
         return JPItems.RICE_SEEDLING.get();
     }
 
     @Override
-    protected boolean isValidGround(BlockState block, IBlockReader reader, BlockPos pos){
+    protected boolean mayPlaceOn(BlockState block, IBlockReader reader, BlockPos pos){
         FluidState fluidState = reader.getFluidState(pos);
-        return fluidState.getFluid() == Fluids.WATER;
+        return fluidState.getFluidState().getType().isSame(Fluids.WATER);
     }
 
 //    @Override

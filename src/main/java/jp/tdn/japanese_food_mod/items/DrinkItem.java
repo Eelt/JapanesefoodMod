@@ -17,7 +17,7 @@ public class DrinkItem extends FoodItem {
 
     @Override
     @Nonnull
-    public UseAction getUseAction(ItemStack p_77661_1_) {
+    public UseAction getUseAnimation(ItemStack itemStack) {
         return UseAction.DRINK;
     }
 }

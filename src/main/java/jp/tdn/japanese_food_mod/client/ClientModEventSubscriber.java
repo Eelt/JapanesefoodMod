@@ -15,10 +15,10 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 public class ClientModEventSubscriber {
     @SubscribeEvent
     public static void onFMLClientSetupEvent(final FMLClientSetupEvent event){
-        ScreenManager.registerFactory(JPContainerTypes.MICROSCOPE, MicroScopeScreen::new);
-        ScreenManager.registerFactory(JPContainerTypes.WOODEN_BUCKET, WoodenBucketScreen::new);
-        ScreenManager.registerFactory(JPContainerTypes.PRESSER, PresserScreen::new);
-        ScreenManager.registerFactory(JPContainerTypes.FURNACE_CAULDRON, FurnaceCauldronScreen::new);
+        ScreenManager.register(JPContainerTypes.MICROSCOPE, MicroScopeScreen::new);
+        ScreenManager.register(JPContainerTypes.WOODEN_BUCKET, WoodenBucketScreen::new);
+        ScreenManager.register(JPContainerTypes.PRESSER, PresserScreen::new);
+        ScreenManager.register(JPContainerTypes.FURNACE_CAULDRON, FurnaceCauldronScreen::new);
         JapaneseFoodMod.LOGGER.debug("Registered ContainerTypeScreens");
     }
 }

@@ -14,10 +14,7 @@ public class AsariClamEntity extends ShellfishEntity {
         super(JPEntities.ASARI_CLAM, worldIn, JPItems.ASARI_CLAM.get());
     }
 
-    protected void updateAir(int p_209207_1_) {
-    }
-
     public static AttributeModifierMap.MutableAttribute registerAttributes() {
-        return MobEntity.func_233666_p_().func_233815_a_(Attributes.field_233818_a_, 2.0D).func_233815_a_(Attributes.field_233821_d_, 0.15D);
+        return MobEntity.createMobAttributes().add(Attributes.MAX_HEALTH, 2.0D).add(Attributes.MOVEMENT_SPEED, 0.15D);
     }
 }

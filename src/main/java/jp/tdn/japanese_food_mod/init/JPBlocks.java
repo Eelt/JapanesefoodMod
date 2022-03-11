@@ -1,29 +1,23 @@
 package jp.tdn.japanese_food_mod.init;
 
-import com.google.common.collect.Lists;
 import jp.tdn.japanese_food_mod.JapaneseFoodMod;
 import jp.tdn.japanese_food_mod.blocks.*;
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
 import net.minecraftforge.common.ToolType;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 import java.util.function.Supplier;
 
 public class JPBlocks {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, JapaneseFoodMod.MOD_ID);
 
-    public static final RegistryObject<Block> SOY_PLANT = register(() -> new SoyPlantBlock(AbstractBlock.Properties.create(Material.PLANTS).doesNotBlockMovement().tickRandomly().sound(SoundType.CROP)), "soy_plant");
-    public static final RegistryObject<Block> ROCK_SALT_BLOCK = register(() -> new RockSaltBlock(AbstractBlock.Properties.create(Material.ROCK, MaterialColor.PINK).harvestTool(ToolType.PICKAXE).hardnessAndResistance(2.5f)), "rock_salt_block");
+    public static final RegistryObject<Block> SOY_PLANT = register(() -> new SoyPlantBlock(AbstractBlock.Properties.of(Material.PLANT).noCollission().randomTicks().sound(SoundType.CROP)), "soy_plant");
+    public static final RegistryObject<Block> ROCK_SALT_BLOCK = register(() -> new RockSaltBlock(AbstractBlock.Properties.of(Material.STONE, MaterialColor.COLOR_PINK).harvestTool(ToolType.PICKAXE).strength(2.5f)), "rock_salt_block");
     public static final RegistryObject<Block> RICE_PLANT = register(RicePlantBlock::new, "rice_plant");
     public static final RegistryObject<Block> WOODEN_BUCKET = register(WoodenBucketBlock::new, "wooden_bucket");
     public static final RegistryObject<Block> MICRO_SCOPE = register(MicroScopeBlock::new, "microscope");
@@ -35,11 +29,11 @@ public class JPBlocks {
     public static final RegistryObject<Block> LEEK_PLANT = register(LeekPlantBlock::new, "leek_plant");
     public static final RegistryObject<Block> OYSTER_SHELL = register(OysterShellBlock::new, "oyster_shell");
     public static final RegistryObject<Block> UNREFINED_MIRIN = register(UnrefinedMirinBlock::new, "unrefined_mirin");
-    public static final RegistryObject<Block> TRONA_ORE = register(() -> new OreBlock(Block.Properties.create(Material.ROCK).hardnessAndResistance(3.0F, 3.0F)), "trona_ore");
+    public static final RegistryObject<Block> TRONA_ORE = register(() -> new OreBlock(Block.Properties.of(Material.STONE).strength(3.0F, 3.0F)), "trona_ore");
     public static final RegistryObject<Block> FURNACE_CAULDRON = register(FurnaceCauldronBlock::new, "furnace_cauldron");
     public static final RegistryObject<Block> SOY_HAY = register(SoyHayBlock::new, "soy_hay");
-    public static final RegistryObject<Block> AZUKI_PLANT = register(() -> new SoyPlantBlock(AbstractBlock.Properties.create(Material.PLANTS).doesNotBlockMovement().tickRandomly().sound(SoundType.CROP)), "azuki_plant");
-    public static final RegistryObject<Block> WAKAME_BLOCK = register(() -> new TallSeaGrassBlock(AbstractBlock.Properties.create(Material.SEA_GRASS, MaterialColor.BROWN).zeroHardnessAndResistance().doesNotBlockMovement().sound(SoundType.WET_GRASS)), "wakame_block");
+    public static final RegistryObject<Block> AZUKI_PLANT = register(() -> new SoyPlantBlock(AbstractBlock.Properties.of(Material.PLANT).noCollission().randomTicks().sound(SoundType.CROP)), "azuki_plant");
+    public static final RegistryObject<Block> WAKAME_BLOCK = register(() -> new TallSeaGrassBlock(AbstractBlock.Properties.of(Material.GRASS, MaterialColor.COLOR_BROWN).strength(0).noCollission().sound(SoundType.WET_GRASS)), "wakame_block");
 
     public static RegistryObject<Block> register(@Nonnull Supplier<Block> block, @Nonnull String name){
         return BLOCKS.register(name, block);

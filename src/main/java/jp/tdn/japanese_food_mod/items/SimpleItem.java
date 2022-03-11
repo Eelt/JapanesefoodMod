@@ -5,6 +5,6 @@ import net.minecraft.item.Item;
 
 public class SimpleItem extends Item {
     public SimpleItem(){
-        super(new Item.Properties().group(JPItems.ItemGroup_Japanese));
+        super(new Item.Properties().tab(JPItems.ItemGroup_Japanese));
     }
 }

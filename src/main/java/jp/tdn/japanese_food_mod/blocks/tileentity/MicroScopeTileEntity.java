@@ -24,9 +24,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.RangedWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,7 +58,7 @@ public class MicroScopeTileEntity extends TileEntity implements ITickableTileEnt
         @Override
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
-            MicroScopeTileEntity.this.markDirty();
+            MicroScopeTileEntity.this.setChanged();
         }
     };
 
@@ -86,7 +84,7 @@ public class MicroScopeTileEntity extends TileEntity implements ITickableTileEnt
 
     private boolean isOutput(final ItemStack stack){
         final Optional<ItemStack> result = getResult(inventory.getStackInSlot(INPUT_SLOT));
-        return result.isPresent() && ItemStack.areItemsEqual(result.get(), stack);
+        return result.isPresent() && ItemStack.isSame(result.get(), stack);
     }
 
     private Optional<MicroScopeRecipe> getRecipe(final ItemStack input){
@@ -94,12 +92,12 @@ public class MicroScopeTileEntity extends TileEntity implements ITickableTileEnt
     }
 
     private Optional<MicroScopeRecipe> getRecipe(final IInventory inventory){
-        return Objects.requireNonNull(world).getRecipeManager().getRecipe(MicroScopeRecipe.RECIPE_TYPE, inventory, world);
+        return Objects.requireNonNull(level).getRecipeManager().getRecipeFor(MicroScopeRecipe.RECIPE_TYPE, inventory, level);
     }
 
     private Optional<ItemStack> getResult(final ItemStack input){
         final Inventory dummyInventory = new Inventory(input);
-        return getRecipe(dummyInventory).map(recipe -> recipe.getCraftingResult(dummyInventory));
+        return getRecipe(dummyInventory).map(recipe -> recipe.assemble(dummyInventory));
     }
 
     public ItemStack getInventory(){
@@ -108,7 +106,7 @@ public class MicroScopeTileEntity extends TileEntity implements ITickableTileEnt
 
     @Override
     public void tick() {
-        if(world == null || world.isRemote) {
+        if(level == null || level.isClientSide()) {
             return;
         }
 
@@ -150,7 +148,7 @@ public class MicroScopeTileEntity extends TileEntity implements ITickableTileEnt
         if(canInsertContainerItemIntoSlot){
             inventory.insertItem(MicroScopeTileEntity.INPUT_SLOT, containerItem, false);
         }else{
-            InventoryHelper.spawnItemStack(Objects.requireNonNull(world), pos.getX(), pos.getY(), pos.getZ(), containerItem);
+            InventoryHelper.dropItemStack(Objects.requireNonNull(level), worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), containerItem);
         }
     }
 
@@ -169,8 +167,8 @@ public class MicroScopeTileEntity extends TileEntity implements ITickableTileEnt
     }
 
     @Override
-    public void func_230337_a_(BlockState state, CompoundNBT compound) {
-        super.func_230337_a_(state, compound);
+    public void load(BlockState state, CompoundNBT compound) {
+        super.load(state, compound);
         this.inventory.deserializeNBT(compound.getCompound(INVENTORY_TAG));
         this.identifiedTimeLeft = compound.getShort(IDENTIFIED_TIME_LEFT_TAG);
         this.maxIdentifiedTime = compound.getShort(MAX_IDENTIFIED_TIME_TAG);
@@ -178,8 +176,8 @@ public class MicroScopeTileEntity extends TileEntity implements ITickableTileEnt
 
     @Override
     @Nonnull
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        super.save(compound);
         compound.put(INVENTORY_TAG, this.inventory.serializeNBT());
         compound.putShort(IDENTIFIED_TIME_LEFT_TAG, this.identifiedTimeLeft);
         compound.putShort(MAX_IDENTIFIED_TIME_TAG, this.maxIdentifiedTime);
@@ -189,19 +187,19 @@ public class MicroScopeTileEntity extends TileEntity implements ITickableTileEnt
     @Override
     @Nonnull
     public CompoundNBT getUpdateTag(){
-        return this.write(new CompoundNBT());
+        return this.save(new CompoundNBT());
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
         inventoryCapabilityExternal.invalidate();
     }
 
     @Nonnull
     @Override
     public ITextComponent getDisplayName() {
-        return new TranslationTextComponent(JPBlocks.MICRO_SCOPE.get().getTranslationKey());
+        return new TranslationTextComponent(JPBlocks.MICRO_SCOPE.get().toString());
     }
 
     @Nonnull

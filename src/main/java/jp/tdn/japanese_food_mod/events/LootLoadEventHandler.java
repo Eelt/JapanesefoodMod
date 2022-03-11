@@ -32,15 +32,15 @@ public class LootLoadEventHandler {
 
         //JapaneseFoodMod.LOGGER.info(event.getName());
         if(event.getName().equals(sea_grass)){
-            event.getTable().addPool(LootPool.builder().addEntry(TableLootEntry.builder(new ResourceLocation(JapaneseFoodMod.MOD_ID, "blocks/seagrass"))).build());
+            event.getTable().addPool(LootPool.lootPool().add(TableLootEntry.lootTableReference(new ResourceLocation(JapaneseFoodMod.MOD_ID, "blocks/seagrass"))).build());
         }
 
         if(event.getName().equals(squid)){
-            event.getTable().addPool(LootPool.builder().addEntry(TableLootEntry.builder(new ResourceLocation(JapaneseFoodMod.MOD_ID, "entities/squid"))).build());
+            event.getTable().addPool(LootPool.lootPool().add(TableLootEntry.lootTableReference(new ResourceLocation(JapaneseFoodMod.MOD_ID, "entities/squid"))).build());
         }
 
         if(event.getName().equals(pig)){
-            event.getTable().addPool(LootPool.builder().addEntry(TableLootEntry.builder(new ResourceLocation(JapaneseFoodMod.MOD_ID, "entities/pig"))).build());
+            event.getTable().addPool(LootPool.lootPool().add(TableLootEntry.lootTableReference(new ResourceLocation(JapaneseFoodMod.MOD_ID, "entities/pig"))).build());
         }
 
         if(FishingConfig.fishing_overworld.get() && event.getName().equals(fish)){
@@ -52,7 +52,7 @@ public class LootLoadEventHandler {
     }
 
     private static LootEntry getInjectEntry(ResourceLocation location, int weight, int quality) {
-        return TableLootEntry.builder(location).weight(weight).quality(quality).build();
+        return TableLootEntry.lootTableReference(location).setWeight(weight).setQuality(quality).build();
     }
 
     private static void addEntry(LootPool pool, LootEntry entry) {

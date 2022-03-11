@@ -36,14 +36,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class PresserBlock extends HorizontalBlock {
-    protected static final VoxelShape SHAPE = VoxelShapes.or(Block.makeCuboidShape(2.0D, 0.0D, 1.0D, 14.0D, 13.0D, 14.0D));
+    protected static final VoxelShape SHAPE = VoxelShapes.or(Block.box(2.0D, 0.0D, 1.0D, 14.0D, 13.0D, 14.0D));
     public static final DirectionProperty DIRECTION = BlockStateProperties.HORIZONTAL_FACING;
-    public static final IntegerProperty OIL = BlockStateProperties.LEVEL_0_3;
+    public static final IntegerProperty OIL = BlockStateProperties.LEVEL_CAULDRON;
     public static final BooleanProperty PRESSING = BooleanProperty.create("pressing");
 
     public PresserBlock(){
-        super(Properties.create(Material.WOOD, MaterialColor.BROWN).harvestTool(ToolType.AXE).hardnessAndResistance(2.0f));
-        this.setDefaultState(this.getDefaultState().with(DIRECTION, Direction.NORTH).with(OIL, 0).with(PRESSING, false));
+        super(Properties.of(Material.WOOD, MaterialColor.COLOR_BROWN).harvestTool(ToolType.AXE).strength(2.0f));
+        this.registerDefaultState(this.defaultBlockState().setValue(DIRECTION, Direction.NORTH).setValue(OIL, 0).setValue(PRESSING, false));
     }
 
     @Override
@@ -69,65 +69,65 @@ public class PresserBlock extends HorizontalBlock {
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        if(!worldIn.isRemote){
-            final TileEntity tileEntity = worldIn.getTileEntity(pos);
+    public ActionResultType use(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+        if(!worldIn.isClientSide){
+            final TileEntity tileEntity = worldIn.getBlockEntity(pos);
             if(tileEntity instanceof PresserTileEntity) NetworkHooks.openGui((ServerPlayerEntity) player, (PresserTileEntity) tileEntity, pos);
         }
         return ActionResultType.SUCCESS;
     }
 
     @Override
-    public void onReplaced(BlockState oldState, @Nonnull World worldIn, @Nonnull BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState oldState, @Nonnull World worldIn, @Nonnull BlockPos pos, BlockState newState, boolean isMoving) {
         if (oldState.getBlock() != newState.getBlock()) {
-            TileEntity tileEntity = worldIn.getTileEntity(pos);
+            TileEntity tileEntity = worldIn.getBlockEntity(pos);
             if (tileEntity instanceof PresserTileEntity) {
                 final ItemStackHandler inventory = ((PresserTileEntity) tileEntity).inventory;
                 for(int index = 0; index < inventory.getSlots(); ++index){
-                    InventoryHelper.spawnItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(index));
+                    InventoryHelper.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(index));
                 }
             }
-            super.onReplaced(oldState, worldIn, pos, newState, isMoving);
+            super.onRemove(oldState, worldIn, pos, newState, isMoving);
         }
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(DIRECTION, context.getPlacementHorizontalFacing().getOpposite());
+        return this.defaultBlockState().setValue(DIRECTION, context.getNearestLookingDirection().getOpposite());
     }
 
     @Override
-    public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
-        final TileEntity tileEntity = worldIn.getTileEntity(pos);
+    public int getAnalogOutputSignal(BlockState blockState, World worldIn, BlockPos pos) {
+        final TileEntity tileEntity = worldIn.getBlockEntity(pos);
         if(tileEntity instanceof PresserTileEntity) return ItemHandlerHelper.calcRedstoneFromInventory(((PresserTileEntity) tileEntity).inventory);
-        return super.getComparatorInputOverride(blockState, worldIn, pos);
+        return super.getAnalogOutputSignal(blockState, worldIn, pos);
     }
 
     public void setOil(World worldIn, BlockPos pos, BlockState state, int level){
-        worldIn.setBlockState(pos, state.with(OIL, MathHelper.clamp(level, 0, 3)), 2);
+        worldIn.setBlock(pos, state.setValue(OIL, MathHelper.clamp(level, 0, 3)), 2);
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(DIRECTION, OIL, PRESSING);
     }
 
     @Override
     @Nonnull
     public BlockState rotate(BlockState state, Rotation rot) {
-        return state.with(DIRECTION, rot.rotate(state.get(DIRECTION)));
+        return state.setValue(DIRECTION, rot.rotate(state.getValue(DIRECTION)));
     }
 
     @Override
     @Nonnull
     public BlockState mirror(BlockState state, Mirror mirrorIn) {
-        return state.rotate(mirrorIn.toRotation(state.get(DIRECTION)));
+        return state.setValue(DIRECTION, mirrorIn.mirror(state.getValue(DIRECTION)));
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
+    public BlockRenderType getRenderShape(BlockState state) {
         return BlockRenderType.MODEL;
     }
 }

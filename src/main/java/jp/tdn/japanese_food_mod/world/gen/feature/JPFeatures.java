@@ -1,9 +1,0 @@
-package jp.tdn.japanese_food_mod.world.gen.feature;
-
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
-
-public class JPFeatures {
-    public static final Feature<NoFeatureConfig> OYSTER = new OysterFeature(NoFeatureConfig.field_236558_a_);
-    public static final Feature<NoFeatureConfig> WAKAME = new WakameFeature(NoFeatureConfig.field_236558_a_);
-}

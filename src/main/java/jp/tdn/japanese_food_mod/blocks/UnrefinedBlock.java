@@ -15,8 +15,8 @@ public class UnrefinedBlock extends Block {
     public static BooleanProperty SAUCE = BooleanProperty.create("sauce");
 
     public UnrefinedBlock(){
-        super(Properties.create(Material.SAND, MaterialColor.BROWN).hardnessAndResistance(1.0f).doesNotBlockMovement().tickRandomly());
-        this.setDefaultState(this.getDefaultState().with(SAUCE, true));
+        super(Properties.of(Material.SAND, MaterialColor.COLOR_BROWN).strength(1.0f).noCollission().randomTicks());
+        this.registerDefaultState(this.defaultBlockState().setValue(SAUCE, true));
     }
 
     @Override
@@ -25,15 +25,15 @@ public class UnrefinedBlock extends Block {
     }
 
     public boolean hasUpSideBlock(World world, BlockPos pos){
-        BlockPos upSide = pos.up();
+        BlockPos upSide = pos.above();
         Block up = world.getBlockState(upSide).getBlock();
 
-        return BlockTags.getCollection().getOrCreate(new ResourceLocation("japanese_food_mod", "heavy")).func_230235_a_(up);
+        return BlockTags.getAllTags().getTagOrEmpty(new ResourceLocation("japanese_food_mod", "heavy")).contains(up);
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(SAUCE);
     }
 }

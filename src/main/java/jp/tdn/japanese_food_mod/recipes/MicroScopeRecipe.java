@@ -42,17 +42,17 @@ public class MicroScopeRecipe implements IRecipe<IInventory> {
 
     @Override
     public boolean matches(IInventory inventory, @Nonnull World worldIn){
-        return this.ingredient.test(inventory.getStackInSlot(0));
+        return this.ingredient.test(inventory.getItem(0));
     }
 
     @Nonnull
     @Override
-    public ItemStack getCraftingResult(@Nonnull IInventory inventory) {
+    public ItemStack assemble(@Nonnull IInventory inventory) {
         return this.result.copy();
     }
 
     @Override
-    public boolean canFit(int width, int height){
+    public boolean canCraftInDimensions(int width, int height){
         return true;
     }
 
@@ -74,7 +74,7 @@ public class MicroScopeRecipe implements IRecipe<IInventory> {
 
     @Nonnull
     @Override
-    public ItemStack getRecipeOutput(){
+    public ItemStack getResultItem(){
         return this.result;
     }
 
@@ -107,13 +107,13 @@ public class MicroScopeRecipe implements IRecipe<IInventory> {
 
         @Nonnull
         @Override
-        public MicroScopeRecipe read(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json) {
-            final JsonElement inputElement = JSONUtils.isJsonArray(json, "ingredient") ? JSONUtils.getJsonArray(json, "ingredient") : JSONUtils.getJsonObject(json, "ingredient");
-            ItemStack result = CraftingHelper.getItemStack(JSONUtils.getJsonObject(json, "result"), true);
+        public MicroScopeRecipe fromJson(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json) {
+            final JsonElement inputElement = JSONUtils.isArrayNode(json, "ingredient") ? JSONUtils.getAsJsonArray(json, "ingredient") : JSONUtils.getAsJsonObject(json, "ingredient");
+            ItemStack result = CraftingHelper.getItemStack(JSONUtils.getAsJsonObject(json, "result"), true);
             Ingredient ingredient = CraftingHelper.getIngredient(inputElement);
-            int cookTime = JSONUtils.getInt(json, "process_time", 50);
-            float experience = JSONUtils.getFloat(json, "xp", 0.0f);
-            float probability = JSONUtils.getFloat(json, "probability");
+            int cookTime = JSONUtils.getAsInt(json, "process_time", 50);
+            float experience = JSONUtils.getAsFloat(json, "xp", 0.0f);
+            float probability = JSONUtils.getAsFloat(json, "probability");
             //JapaneseFoodMod.LOGGER.info(recipe.ingredient);
 
             return new MicroScopeRecipe(recipeId, ingredient, result, experience, probability, cookTime);
@@ -121,9 +121,9 @@ public class MicroScopeRecipe implements IRecipe<IInventory> {
 
         @Nullable
         @Override
-        public MicroScopeRecipe read(@Nonnull ResourceLocation recipeId, @Nonnull PacketBuffer buffer) {
-            Ingredient ingredient = Ingredient.read(buffer);
-            ItemStack result = buffer.readItemStack();
+        public MicroScopeRecipe fromNetwork(@Nonnull ResourceLocation recipeId, @Nonnull PacketBuffer buffer) {
+            Ingredient ingredient = Ingredient.fromNetwork(buffer);
+            ItemStack result = buffer.readItem();
             int cookTime = buffer.readVarInt();
             float experience = buffer.readFloat();
             float probability = buffer.readFloat();
@@ -132,9 +132,9 @@ public class MicroScopeRecipe implements IRecipe<IInventory> {
         }
 
         @Override
-        public void write(@Nonnull PacketBuffer buffer, MicroScopeRecipe recipe) {
-            recipe.ingredient.write(buffer);
-            buffer.writeItemStack(recipe.result);
+        public void toNetwork(@Nonnull PacketBuffer buffer, MicroScopeRecipe recipe) {
+            recipe.ingredient.toNetwork(buffer);
+            buffer.writeItem(recipe.result);
             buffer.writeVarInt(recipe.cookTime);
             buffer.writeFloat(recipe.experience);
             buffer.writeFloat(recipe.probability);

@@ -6,14 +6,14 @@ import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 
-public class JapaneseFoodItemGroup extends ItemGroup{
+public class JapaneseFoodItemGroup extends ItemGroup {
     public JapaneseFoodItemGroup(){
         super("japanese_food_mod");
     }
 
     @Override
     @Nonnull
-    public ItemStack createIcon(){
+    public ItemStack makeIcon(){
         return new ItemStack(JPItems.ONIGIRI.get());
     }
 }

@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack;
 
 public class CookWareItem extends Item {
     public CookWareItem(){
-        super(new Item.Properties().maxStackSize(1).group(JPItems.ItemGroup_Japanese));
+        super(new Item.Properties().stacksTo(1).tab(JPItems.ItemGroup_Japanese));
     }
 
     @Override
@@ -14,8 +14,8 @@ public class CookWareItem extends Item {
         return new ItemStack(this);
     }
 
-    @Override
+    /*@Override
     public boolean hasContainerItem(){
         return true;
-    }
+    }*/
 }

@@ -18,6 +18,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.BlockSnapshot;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -36,41 +37,42 @@ public class RiceSeedlingItem extends BlockItem {
 
     @Nonnull
     public ActionResult<ItemStack> onItemRightClick(World world, PlayerEntity playerentity, @Nonnull Hand hand) {
-        ItemStack itemstack = playerentity.getHeldItem(hand);
-        RayTraceResult raytraceresult = rayTrace(world, playerentity, RayTraceContext.FluidMode.SOURCE_ONLY);
+        ItemStack itemstack = playerentity.getItemInHand(hand);
+        RayTraceResult raytraceresult = getPlayerPOVHitResult(world, playerentity, RayTraceContext.FluidMode.SOURCE_ONLY);
         if (raytraceresult.getType() == RayTraceResult.Type.MISS) {
             return new ActionResult<>(ActionResultType.PASS, itemstack);
         } else {
             if (raytraceresult.getType() == RayTraceResult.Type.BLOCK) {
                 BlockRayTraceResult blockraytraceresult = (BlockRayTraceResult)raytraceresult;
-                BlockPos blockpos = blockraytraceresult.getPos();
-                Direction direction = blockraytraceresult.getFace();
-                if (!world.isBlockModifiable(playerentity, blockpos) || !playerentity.canPlayerEdit(blockpos.offset(direction), direction, itemstack)) {
+                BlockPos blockpos = blockraytraceresult.getBlockPos();
+                Direction direction = blockraytraceresult.getDirection();
+                if (!world.mayInteract(playerentity, blockpos) || !playerentity.mayUseItemAt(blockpos.relative(direction), direction, itemstack)) {
                     return new ActionResult<>(ActionResultType.FAIL, itemstack);
                 }
 
-                BlockPos blockpos1 = blockpos.up();
+                BlockPos blockpos1 = blockpos.above();
                 BlockState blockstate = world.getBlockState(blockpos);
                 Material material = blockstate.getMaterial();
                 FluidState ifluidstate = world.getFluidState(blockpos);
-                if ((ifluidstate.getFluid() == Fluids.WATER) && world.isAirBlock(blockpos1)) {
-                    BlockSnapshot blocksnapshot = BlockSnapshot.create(world, blockpos1);
-                    world.setBlockState(blockpos1, JPBlocks.RICE_PLANT.get().getDefaultState(), 11);
+                if ((ifluidstate.getFluidState().getType() == Fluids.WATER) && world.getBlockState(blockpos1).isAir()) {
+                    /*BlockSnapshot blocksnapshot = BlockSnapshot.create(world, blockpos1); // TODO: Block snapshot
+                    world.setBlock(blockpos1, JPBlocks.RICE_PLANT.get().defaultBlockState(), 11);
                     if (ForgeEventFactory.onBlockPlace(playerentity, blocksnapshot, Direction.UP)) {
                         blocksnapshot.restore(true, false);
                         return new ActionResult<>(ActionResultType.FAIL, itemstack);
-                    }
+                    }*/
+                    world.setBlock(blockpos1, JPBlocks.RICE_PLANT.get().defaultBlockState(), 11); // TODO: May not work well without block snapshot
 
                     if (playerentity instanceof ServerPlayerEntity) {
                         CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayerEntity)playerentity, blockpos1, itemstack);
                     }
 
-                    if (!playerentity.abilities.isCreativeMode) {
+                    if (!playerentity.abilities.instabuild) {
                         itemstack.shrink(1);
                     }
 
-                    playerentity.addStat(Stats.ITEM_USED.get(this));
-                    world.playSound(playerentity, blockpos, SoundEvents.ITEM_CROP_PLANT, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                    playerentity.awardStat(Stats.ITEM_USED.get(this));
+                    world.playSound(playerentity, blockpos, SoundEvents.CROP_PLANTED, SoundCategory.BLOCKS, 1.0F, 1.0F);
                     return new ActionResult<>(ActionResultType.SUCCESS, itemstack);
                 }
             }

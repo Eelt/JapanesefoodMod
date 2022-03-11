@@ -34,13 +34,13 @@ public class FurnaceCauldronRecipe implements IRecipe<IInventory> {
     }
 
     public boolean matches(@Nonnull IInventory inventory, @Nonnull World worldIn){
-        ItemStack stack = inventory.getStackInSlot(0);
+        ItemStack stack = inventory.getItem(0);
         return ingredient.test(stack);
     }
 
     @Override
     @Nonnull
-    public ItemStack getCraftingResult(@Nonnull IInventory inventory) {
+    public ItemStack assemble(@Nonnull IInventory inventory) {
         return new ItemStack(JPItems.SALT.get());
     }
 
@@ -48,7 +48,8 @@ public class FurnaceCauldronRecipe implements IRecipe<IInventory> {
         return result;
     }
 
-    public boolean canFit(int width, int height){
+    @Override
+    public boolean canCraftInDimensions(int width, int height){
         return true;
     }
 
@@ -59,8 +60,9 @@ public class FurnaceCauldronRecipe implements IRecipe<IInventory> {
         return ingredients;
     }
 
+    @Override
     @Nonnull
-    public ItemStack getRecipeOutput(){
+    public ItemStack getResultItem(){
         return new ItemStack(JPItems.SALT.get());
     }
 
@@ -91,29 +93,29 @@ public class FurnaceCauldronRecipe implements IRecipe<IInventory> {
 
         @Override
         @Nonnull
-        public FurnaceCauldronRecipe read(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json) {
+        public FurnaceCauldronRecipe fromJson(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json) {
             FurnaceCauldronRecipe recipe = new FurnaceCauldronRecipe(recipeId);
-            recipe.result = CraftingHelper.getItemStack(JSONUtils.getJsonObject(json, "result"), false);
-            recipe.cookTime = JSONUtils.getInt(json, "process_time", 50);
-            recipe.ingredient = CraftingHelper.getIngredient(JSONUtils.getJsonObject(json, "ingredient"));
+            recipe.result = CraftingHelper.getItemStack(JSONUtils.getAsJsonObject(json, "result"), false);
+            recipe.cookTime = JSONUtils.getAsInt(json, "process_time", 50);
+            recipe.ingredient = CraftingHelper.getIngredient(JSONUtils.getAsJsonObject(json, "ingredient"));
             return recipe;
         }
 
         @Nullable
         @Override
-        public FurnaceCauldronRecipe read(@Nonnull ResourceLocation recipeId, PacketBuffer buffer) {
+        public FurnaceCauldronRecipe fromNetwork(@Nonnull ResourceLocation recipeId, PacketBuffer buffer) {
             FurnaceCauldronRecipe recipe = new FurnaceCauldronRecipe(recipeId);
             recipe.cookTime = buffer.readVarInt();
-            recipe.result = buffer.readItemStack();
-            recipe.ingredient = Ingredient.read(buffer);
+            recipe.result = buffer.readItem();
+            recipe.ingredient = Ingredient.fromNetwork(buffer);
             return recipe;
         }
 
         @Override
-        public void write(PacketBuffer buffer, FurnaceCauldronRecipe recipe) {
+        public void toNetwork(PacketBuffer buffer, FurnaceCauldronRecipe recipe) {
             buffer.writeVarInt(recipe.cookTime);
-            buffer.writeItemStack(recipe.result);
-            recipe.ingredient.write(buffer);
+            buffer.writeItem(recipe.result);
+            recipe.ingredient.toNetwork(buffer);
         }
     }
 }

@@ -24,20 +24,10 @@ public class CrabEntity extends WaterMobEntity {
         super(JPEntities.CRAB, worldIn);
     }
 
-    protected void updateAir(int p_209207_1_) {
-//        if (this.isAlive() && !this.isInWaterOrBubbleColumn()) {
-//            this.setAir(p_209207_1_ - 1);
-//            if (this.getAir() == -20) {
-//                this.setAir(0);
-//                this.attackEntityFrom(DamageSource.DROWN, 2.0F);
-//            }
-//        } else {
-//            this.setAir(20000);
-//        }
-    }
+    // handleAirSupply in superclass
 
     @Override
-    public int getMaxSpawnedInChunk() {
+    public int getAmbientSoundInterval() {
         return 32;
     }
 
@@ -50,10 +40,10 @@ public class CrabEntity extends WaterMobEntity {
     }
 
     public static AttributeModifierMap.MutableAttribute registerAttributes() {
-        return MobEntity.func_233666_p_().func_233815_a_(Attributes.field_233818_a_, 5.0D).func_233815_a_(Attributes.field_233821_d_, 0.3D);
+        return MobEntity.createMobAttributes().add(Attributes.MAX_HEALTH, 5.0D).add(Attributes.MOVEMENT_SPEED, 0.3D);
     }
 
     public static boolean spawnHandler(EntityType<? extends CrabEntity> entityIn, IWorld worldIn, SpawnReason reason, BlockPos pos, Random random){
-        return worldIn.getBlockState(pos.down()).getBlock() != Blocks.WATER && worldIn.getFluidState(pos).isTagged(FluidTags.WATER);
+        return worldIn.getBlockState(pos.below()).getBlock() != Blocks.WATER && worldIn.getFluidState(pos).is(FluidTags.WATER);
     }
 }

@@ -24,9 +24,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.RangedWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,7 +61,7 @@ public class PresserTileEntity extends TileEntity implements ITickableTileEntity
         @Override
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
-            PresserTileEntity.this.markDirty();
+            PresserTileEntity.this.setChanged();
         }
     };
 
@@ -97,7 +95,7 @@ public class PresserTileEntity extends TileEntity implements ITickableTileEntity
     }
 
     private Optional<PresserRecipe> getRecipe(final IInventory inventory){
-        return Objects.requireNonNull(world).getRecipeManager().getRecipe(PresserRecipe.RECIPE_TYPE, inventory, world);
+        return Objects.requireNonNull(level).getRecipeManager().getRecipeFor(PresserRecipe.RECIPE_TYPE, inventory, level);
     }
 
     private short getResult(final ItemStack input){
@@ -106,7 +104,7 @@ public class PresserTileEntity extends TileEntity implements ITickableTileEntity
 
     @Override
     public void tick() {
-        if(world == null || world.isRemote) return;
+        if(level == null || level.isClientSide()) return;
 
         boolean isPressing = false;
         final ItemStack input = inventory.getStackInSlot(INPUT_SLOT);
@@ -143,22 +141,22 @@ public class PresserTileEntity extends TileEntity implements ITickableTileEntity
         }
 
         if(lastPressing != isPressing){
-            this.markDirty();
-            final BlockState newState = world.getBlockState(pos).with(PresserBlock.PRESSING, isPressing);
-            world.setBlockState(pos, newState, 2);
+            this.setChanged();
+            final BlockState newState = level.getBlockState(worldPosition).setValue(PresserBlock.PRESSING, isPressing);
+            level.setBlock(worldPosition, newState, 2);
             lastPressing = isPressing;
         }
 
-        int level;
+        int i;
         if(oilRemaining == 0){
-            level = 0;
+            i = 0;
         }else if(oilRemaining < 160){
-            level = 1;
+            i = 1;
         }else{
-            level = 2;
+            i = 2;
         }
-        PresserBlock block = (PresserBlock) world.getBlockState(pos).getBlock();
-        block.setOil(world, pos, world.getBlockState(pos), level);
+        PresserBlock block = (PresserBlock) level.getBlockState(worldPosition).getBlock();
+        block.setOil(level, worldPosition, level.getBlockState(worldPosition), i);
 
     }
 
@@ -168,7 +166,7 @@ public class PresserTileEntity extends TileEntity implements ITickableTileEntity
         if(canInsertContainerItemIntoSlot){
             inventory.insertItem(PresserTileEntity.INPUT_SLOT, containerItem, false);
         }else{
-            InventoryHelper.spawnItemStack(Objects.requireNonNull(world), pos.getX(), pos.getY(), pos.getZ(), containerItem);
+            InventoryHelper.dropItemStack(Objects.requireNonNull(level), worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), containerItem);
         }
     }
 
@@ -187,8 +185,8 @@ public class PresserTileEntity extends TileEntity implements ITickableTileEntity
     }
 
     @Override
-    public void func_230337_a_(BlockState state,CompoundNBT compound) {
-        super.func_230337_a_(state, compound);
+    public void load(BlockState state,CompoundNBT compound) {
+        super.load(state, compound);
         this.inventory.deserializeNBT(compound.getCompound(INVENTORY_TAG));
         this.pressedTimeLeft = compound.getShort(PRESSED_TIME_LEFT_TAG);
         this.maxPressedTime = compound.getShort(MAX_PRESSED_TIME_TAG);
@@ -197,8 +195,8 @@ public class PresserTileEntity extends TileEntity implements ITickableTileEntity
 
     @Override
     @Nonnull
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        super.save(compound);
         compound.put(INVENTORY_TAG, this.inventory.serializeNBT());
         compound.putShort(PRESSED_TIME_LEFT_TAG, this.pressedTimeLeft);
         compound.putShort(MAX_PRESSED_TIME_TAG, this.maxPressedTime);
@@ -208,19 +206,19 @@ public class PresserTileEntity extends TileEntity implements ITickableTileEntity
 
     @Nonnull
     public CompoundNBT getUpdateTag(){
-        return this.write(new CompoundNBT());
+        return this.save(new CompoundNBT());
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
         inventoryCapabilityExternal.invalidate();
     }
 
     @Nonnull
     @Override
     public ITextComponent getDisplayName() {
-        return new TranslationTextComponent(JPBlocks.PRESSER.get().getTranslationKey());
+        return new TranslationTextComponent(JPBlocks.PRESSER.get().getDescriptionId());
     }
 
     @Nonnull

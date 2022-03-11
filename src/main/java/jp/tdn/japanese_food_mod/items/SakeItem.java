@@ -6,8 +6,12 @@ import net.minecraft.item.Item;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 
+import java.util.function.Supplier;
+
 public class SakeItem extends DrinkItem {
     public SakeItem(int hunger, float saturation){
-        super(new Item.Properties().group(JPItems.ItemGroup_Japanese).food(new Food.Builder().hunger(hunger).saturation(saturation).effect(new EffectInstance(Effects.NAUSEA, 600), 0.5f).build()));
+        super(new Item.Properties().tab(JPItems.ItemGroup_Japanese).food(new Food.Builder().nutrition(hunger).saturationMod(saturation)
+                .effect(new EffectInstance(Effects.CONFUSION, 600), 0.5f).build()
+        ));
     }
 }

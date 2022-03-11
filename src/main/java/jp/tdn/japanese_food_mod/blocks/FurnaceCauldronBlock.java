@@ -32,13 +32,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class FurnaceCauldronBlock extends JPHorizontalBlock {
-    protected static final VoxelShape SHAPE = VoxelShapes.or(Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 24.0D, 16.0D));
-    protected static final VoxelShape COLLISION = VoxelShapes.or(Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 24.0D, 16.0D));
-    public static final IntegerProperty WATER = BlockStateProperties.LEVEL_0_3;
+    protected static final VoxelShape SHAPE = VoxelShapes.or(Block.box(0.0D, 0.0D, 0.0D, 16.0D, 24.0D, 16.0D));
+    protected static final VoxelShape COLLISION = VoxelShapes.or(Block.box(0.0D, 0.0D, 0.0D, 16.0D, 24.0D, 16.0D));
+    public static final IntegerProperty WATER = BlockStateProperties.LEVEL_CAULDRON;
 
     public FurnaceCauldronBlock(){
-        super(Properties.create(Material.IRON, MaterialColor.STONE).hardnessAndResistance(2.0f).notSolid());
-        setDefaultState(this.getDefaultState().with(DIRECTION, Direction.NORTH).with(WATER, 0));
+        super(Properties.of(Material.METAL, MaterialColor.STONE).strength(2.0f).noOcclusion());
+        registerDefaultState(this.defaultBlockState().setValue(DIRECTION, Direction.NORTH).setValue(WATER, 0));
     }
 
     @Override
@@ -53,7 +53,7 @@ public class FurnaceCauldronBlock extends JPHorizontalBlock {
     }
 
     @Override
-    public VoxelShape getRenderShape(BlockState p_196247_1_, IBlockReader p_196247_2_, BlockPos p_196247_3_) {
+    public VoxelShape getBlockSupportShape(BlockState p_196247_1_, IBlockReader p_196247_2_, BlockPos p_196247_3_) {
         return SHAPE;
     }
 
@@ -63,23 +63,23 @@ public class FurnaceCauldronBlock extends JPHorizontalBlock {
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity playerEntity, Hand hand, BlockRayTraceResult rayTraceResult) {
-        if(!world.isRemote()){
-            ItemStack heldItem = playerEntity.getHeldItem(hand);
-            if(JPItemTags.WATER.func_230235_a_(heldItem.getItem())){
-                TileEntity blockEntity = world.getTileEntity(pos);
+    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity playerEntity, Hand hand, BlockRayTraceResult rayTraceResult) {
+        if(!world.isClientSide){
+            ItemStack heldItem = playerEntity.getItemInHand(hand);
+            if(JPItemTags.WATER.contains(heldItem.getItem())){
+                TileEntity blockEntity = world.getBlockEntity(pos);
                 if(blockEntity instanceof FurnaceCauldronTileEntity){
                     if(((FurnaceCauldronTileEntity) blockEntity).canAddWater()) {
                         ((FurnaceCauldronTileEntity) blockEntity).addWater(heldItem);
-                        if(!playerEntity.abilities.isCreativeMode){
-                            playerEntity.setHeldItem(hand, new ItemStack(heldItem.getContainerItem().getItem()));
+                        if(!playerEntity.abilities.instabuild){
+                            playerEntity.setItemInHand(hand, new ItemStack(heldItem.getContainerItem().getItem()));
                         }
-                        world.playSound((PlayerEntity)null, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                        world.playSound((PlayerEntity)null, pos, SoundEvents.BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F);
                     }
                     setWaterLevel(world, pos, state, ((FurnaceCauldronTileEntity) blockEntity).getWaterRemaining(), ((FurnaceCauldronTileEntity) blockEntity).getMaxWater());
                 }
             }else{
-                final TileEntity tileEntity = world.getTileEntity(pos);
+                final TileEntity tileEntity = world.getBlockEntity(pos);
                 if (tileEntity instanceof FurnaceCauldronTileEntity)
                     NetworkHooks.openGui((ServerPlayerEntity) playerEntity, (FurnaceCauldronTileEntity) tileEntity, pos);
             }
@@ -99,39 +99,39 @@ public class FurnaceCauldronBlock extends JPHorizontalBlock {
         }else if(per >= 0.95f && per <= 1.0f){
             level = 3;
         }
-        worldIn.setBlockState(pos, state.with(WATER, level));
+        worldIn.setBlockAndUpdate(pos, state.setValue(WATER, level));
     }
 
     @Override
-    public void onReplaced(BlockState oldState, @Nonnull World worldIn, @Nonnull BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState oldState, @Nonnull World worldIn, @Nonnull BlockPos pos, BlockState newState, boolean isMoving) {
         if (oldState.getBlock() != newState.getBlock()) {
-            TileEntity tileEntity = worldIn.getTileEntity(pos);
+            TileEntity tileEntity = worldIn.getBlockEntity(pos);
             if (tileEntity instanceof FurnaceCauldronTileEntity) {
                 final ItemStackHandler inventory = ((FurnaceCauldronTileEntity) tileEntity).inventory;
                 for(int index = 0; index < inventory.getSlots(); ++index){
-                    InventoryHelper.spawnItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(index));
+                    InventoryHelper.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(index));
                 }
             }
-            super.onReplaced(oldState, worldIn, pos, newState, isMoving);
+            super.onRemove(oldState, worldIn, pos, newState, isMoving);
         }
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(DIRECTION, context.getPlacementHorizontalFacing().getOpposite());
+        return this.defaultBlockState().setValue(DIRECTION, context.getNearestLookingDirection().getOpposite());
     }
 
     @Override
-    public int getComparatorInputOverride(BlockState blockState, World worldIn, BlockPos pos) {
-        final TileEntity tileEntity = worldIn.getTileEntity(pos);
+    public int getAnalogOutputSignal(BlockState blockState, World worldIn, BlockPos pos) {
+        final TileEntity tileEntity = worldIn.getBlockEntity(pos);
         if(tileEntity instanceof FurnaceCauldronTileEntity) return ItemHandlerHelper.calcRedstoneFromInventory(((FurnaceCauldronTileEntity) tileEntity).inventory);
-        return super.getComparatorInputOverride(blockState, worldIn, pos);
+        return super.getAnalogOutputSignal(blockState, worldIn, pos);
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(WATER);
     }
 }

@@ -41,8 +41,8 @@ public class WoodenBucketRecipe implements IRecipe<IInventory> {
     public boolean matches(@Nonnull IInventory inventory, @Nonnull World worldIn){
         boolean check;
         List<ItemStack> inputs = Lists.newArrayList();
-        for(int i = 0; i < inventory.getSizeInventory(); ++i){
-            ItemStack stack = inventory.getStackInSlot(i);
+        for(int i = 0; i < inventory.getContainerSize(); ++i){
+            ItemStack stack = inventory.getItem(i);
             if(!stack.isEmpty()){
                 inputs.add(stack);
             }
@@ -53,13 +53,12 @@ public class WoodenBucketRecipe implements IRecipe<IInventory> {
         return check;
     }
 
-    @Override
     @Nonnull
-    public ItemStack getCraftingResult(@Nonnull IInventory inventory) {
+    public ItemStack assemble(@Nonnull IInventory inventory) {
         return this.result.copy();
     }
 
-    public boolean canFit(int width, int height){
+    public boolean canCraftInDimensions(int width, int height){
         return true;
     }
 
@@ -69,7 +68,7 @@ public class WoodenBucketRecipe implements IRecipe<IInventory> {
     }
 
     @Nonnull
-    public ItemStack getRecipeOutput(){
+    public ItemStack getResultItem(){
         return this.result;
     }
 
@@ -112,38 +111,38 @@ public class WoodenBucketRecipe implements IRecipe<IInventory> {
 
         @Override
         @Nonnull
-        public WoodenBucketRecipe read(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json) {
+        public WoodenBucketRecipe fromJson(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json) {
             WoodenBucketRecipe recipe = new WoodenBucketRecipe(recipeId);
 
-            recipe.result = CraftingHelper.getItemStack(JSONUtils.getJsonObject(json, "result"), true);
-            recipe.cookTime = JSONUtils.getInt(json, "process_time");
-            recipe.ingredients = readIngredients(JSONUtils.getJsonArray(json, "ingredients"));
+            recipe.result = CraftingHelper.getItemStack(JSONUtils.getAsJsonObject(json, "result"), true);
+            recipe.cookTime = JSONUtils.getAsInt(json, "process_time");
+            recipe.ingredients = readIngredients(JSONUtils.getAsJsonArray(json, "ingredients"));
 
             return recipe;
         }
 
         @Nullable
         @Override
-        public WoodenBucketRecipe read(@Nonnull ResourceLocation recipeId, PacketBuffer buffer) {
+        public WoodenBucketRecipe fromNetwork(@Nonnull ResourceLocation recipeId, PacketBuffer buffer) {
             WoodenBucketRecipe recipe = new WoodenBucketRecipe(recipeId);
             final int index = buffer.readVarInt();
             NonNullList<Ingredient> nonnulllist = NonNullList.withSize(index, Ingredient.EMPTY);
             for(int j = 0; j < nonnulllist.size(); ++j) {
-                nonnulllist.set(j, Ingredient.read(buffer));
+                nonnulllist.set(j, Ingredient.fromNetwork(buffer));
             }
             recipe.ingredients = nonnulllist;
-            recipe.result = buffer.readItemStack();
+            recipe.result = buffer.readItem();
             recipe.cookTime = buffer.readVarInt();
             return recipe;
         }
 
         @Override
-        public void write(@Nonnull PacketBuffer buffer, WoodenBucketRecipe recipe) {
+        public void toNetwork(@Nonnull PacketBuffer buffer, WoodenBucketRecipe recipe) {
             buffer.writeVarInt(recipe.ingredients.size());
             for (Ingredient ingredient : recipe.ingredients) {
-                ingredient.write(buffer);
+                ingredient.toNetwork(buffer);
             }
-            buffer.writeItemStack(recipe.result);
+            buffer.writeItem(recipe.result);
             buffer.writeVarInt(recipe.cookTime);
         }
     }

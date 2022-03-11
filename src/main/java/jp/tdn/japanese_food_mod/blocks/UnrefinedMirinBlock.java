@@ -29,18 +29,18 @@ public class UnrefinedMirinBlock extends UnrefinedBlock {
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult rayTraceResult) {
-        if(!world.isRemote){
-            if(state.get(SAUCE) && hasUpSideBlock(world, pos)){
+    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity entity, Hand hand, BlockRayTraceResult rayTraceResult) {
+        if(!world.isClientSide){
+            if(state.getValue(SAUCE) && hasUpSideBlock(world, pos)){
                 ItemStack insert = new ItemStack(JPItems.MIRIN.get());
-                TileEntity tileEntity = world.getTileEntity(pos);
+                TileEntity tileEntity = world.getBlockEntity(pos);
                 if(tileEntity instanceof UnrefinedMirinTileEntity){
                     if(((UnrefinedMirinTileEntity) tileEntity).getSauceRemaining() > 0) {
-                        entity.inventory.addItemStackToInventory(insert);
+                        entity.inventory.add(insert);
                         ((UnrefinedMirinTileEntity) tileEntity).useSauce();
 
                         if (((UnrefinedMirinTileEntity) tileEntity).getSauceRemaining() <= 0) {
-                            world.setBlockState(pos, state.with(SAUCE, false));
+                            world.setBlockAndUpdate(pos, state.setValue(SAUCE, false));
                         }
                     }
                 }

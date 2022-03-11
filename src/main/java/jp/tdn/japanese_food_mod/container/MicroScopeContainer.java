@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.IntReferenceHolder;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
@@ -27,10 +28,33 @@ public class MicroScopeContainer extends Container {
     public MicroScopeContainer(final int windowId, final PlayerInventory playerInventory, final MicroScopeTileEntity tileEntity){
         super(JPContainerTypes.MICROSCOPE, windowId);
         this.tileEntity = tileEntity;
-        this.canInteractWithCallable = IWorldPosCallable.of(Objects.requireNonNull(tileEntity.getWorld()), tileEntity.getPos());
+        this.canInteractWithCallable = IWorldPosCallable.create(Objects.requireNonNull(tileEntity.getLevel()), tileEntity.getBlockPos());
 
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.identifiedTimeLeft, v -> tileEntity.identifiedTimeLeft = (short)v));
-        this.trackInt(new FunctionalIntReferenceHolder(() -> tileEntity.maxIdentifiedTime, v -> tileEntity.maxIdentifiedTime = (short)v));
+        // Identified time left
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.identifiedTimeLeft;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.identifiedTimeLeft = (short) i;
+            }
+        });
+
+        // Max identified time
+        addDataSlot(new IntReferenceHolder() {
+            @Override
+            public int get() {
+                return tileEntity.maxIdentifiedTime;
+            }
+
+            @Override
+            public void set(int i) {
+                tileEntity.maxIdentifiedTime = (short) i;
+            }
+        });
 
         this.addSlot(new SlotItemHandler(tileEntity.inventory, MicroScopeTileEntity.INPUT_SLOT, 42, 38));
         this.addSlot(new SlotItemHandler(tileEntity.inventory, MicroScopeTileEntity.OUTPUT_SLOT, 136, 78));
@@ -55,35 +79,35 @@ public class MicroScopeContainer extends Container {
     private static MicroScopeTileEntity getTileEntity(final PlayerInventory playerInventory, final PacketBuffer data){
         Objects.requireNonNull(playerInventory, "playerInventory cannot be null");
         Objects.requireNonNull(data, "data cannot be null");
-        final TileEntity tileAtPos = playerInventory.player.world.getTileEntity(data.readBlockPos());
+        final TileEntity tileAtPos = playerInventory.player.level.getBlockEntity(data.readBlockPos());
         if(tileAtPos instanceof MicroScopeTileEntity) return (MicroScopeTileEntity)tileAtPos;
         throw new IllegalStateException("Tile entity is not correct" + tileAtPos);
     }
 
     @Nonnull
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity player, int index) {
+    public ItemStack quickMoveStack(PlayerEntity player, int index) {
         ItemStack returnStack = ItemStack.EMPTY;
-        final Slot slot = this.inventorySlots.get(index);
-        if(slot != null && slot.getHasStack()){
-            final ItemStack slotStack = slot.getStack();
+        final Slot slot = this.slots.get(index);
+        if(slot != null && slot.hasItem()){
+            final ItemStack slotStack = slot.getItem();
             returnStack = slotStack.copy();
 
-            final int containerSlots = this.inventorySlots.size() - player.inventory.mainInventory.size();
+            final int containerSlots = this.slots.size() - player.inventory.items.size();
             if(index < containerSlots){
-                if(!mergeItemStack(slotStack, containerSlots, this.inventorySlots.size(), true)){
+                if(!moveItemStackTo(slotStack, containerSlots, this.slots.size(), true)){
                     return ItemStack.EMPTY;
                 }
-            }else if(!mergeItemStack(slotStack, 0, containerSlots, false)){
+            }else if(!moveItemStackTo(slotStack, 0, containerSlots, false)){
 
                 return ItemStack.EMPTY;
             }
 
             if(slotStack.getCount() == 0){
 
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             }else{
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if(slotStack.getCount() == returnStack.getCount()){
@@ -96,7 +120,7 @@ public class MicroScopeContainer extends Container {
     }
 
     @Override
-    public boolean canInteractWith(@Nonnull final PlayerEntity player) {
-        return isWithinUsableDistance(canInteractWithCallable, player, JPBlocks.MICRO_SCOPE.get());
+    public boolean stillValid(@Nonnull final PlayerEntity player) {
+        return stillValid(canInteractWithCallable, player, JPBlocks.MICRO_SCOPE.get());
     }
 }

@@ -25,25 +25,20 @@ public class UnrefinedTileEntity extends TileEntity{
     }
 
     @Override
-    public void func_230337_a_(BlockState state, CompoundNBT compound) {
-        super.func_230337_a_(state, compound);
+    public void load(BlockState state, CompoundNBT compound) {
+        super.load(state, compound);
         this.sauceRemaining = compound.getShort("sauceRemaining");
     }
 
     @Override
     @Nonnull
-    public CompoundNBT write(CompoundNBT compound) {
+    public CompoundNBT save(CompoundNBT compound) {
         compound.putShort(SAUCE_REMAINING_TAG, sauceRemaining);
-        return super.write(compound);
+        return super.save(compound);
     }
 
     @Nonnull
     public CompoundNBT getUpdateTag(){
-        return this.write(new CompoundNBT());
-    }
-
-    @Override
-    public void remove() {
-        super.remove();
+        return this.save(new CompoundNBT());
     }
 }
