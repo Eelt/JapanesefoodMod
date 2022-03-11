@@ -20,7 +20,7 @@ public class ClamEntityRender extends MobRenderer<ClamEntity, ClamEntityModel<Cl
 
     @Nullable
     @Override
-    public ResourceLocation getEntityTexture(@Nonnull ClamEntity clamEntity) {
+    public ResourceLocation getTextureLocation(@Nonnull ClamEntity clamEntity) {
         return new ResourceLocation(JapaneseFoodMod.MOD_ID + ":textures/entities/clam.png");
     }
 }

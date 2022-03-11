@@ -20,7 +20,7 @@ public class AsariClamEntityRender extends MobRenderer<AsariClamEntity, AsariCla
 
     @Nullable
     @Override
-    public ResourceLocation getEntityTexture(@Nonnull AsariClamEntity clamEntity) {
+    public ResourceLocation getTextureLocation(@Nonnull AsariClamEntity clamEntity) {
         return new ResourceLocation(JapaneseFoodMod.MOD_ID + ":textures/entities/asari_clam.png");
     }
 }

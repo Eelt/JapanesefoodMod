@@ -1,13 +1,6 @@
 package jp.tdn.japanese_food_mod.client.patchouli.processor;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.util.ResourceLocation;
-import vazkii.patchouli.api.IComponentProcessor;
-import vazkii.patchouli.api.IVariable;
-import vazkii.patchouli.api.IVariableProvider;
-
+/*
 public class MicroScopeRecipeProcessor implements IComponentProcessor {
     private IRecipe<?> recipe;
 
@@ -31,4 +24,4 @@ public class MicroScopeRecipeProcessor implements IComponentProcessor {
         }
         return null;
     }
-}
+}*/

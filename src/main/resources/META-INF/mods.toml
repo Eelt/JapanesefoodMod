@@ -1,11 +1,12 @@
 # The name of the mod loader type to load
 modLoader="javafml"
 # A version range to match for said mod loader
-loaderVersion="[32,)"
+loaderVersion="[34,)"
+license="MIT"
 # A list of mods
 [[mods]]
 modId="japanese_food_mod"
-version="${file.jarVersion}"
+version="1.16.3+"
 displayName="Japanese Food Mod"
 #displayURL="" #optional
 credits="qsefthuopq, FlutterDream, LemonJamTart"
@@ -17,7 +18,7 @@ description='''
 [[dependencies.jp.tdn.japanese_food_mod]] #optional
     modId="forge"
     mandatory=true
-    versionRange="[32,)"
+    versionRange="[34,37)"
     ordering="NONE"
     side="BOTH"
 
@@ -25,12 +26,12 @@ description='''
 [[dependencies.jp.tdn.japanese_food_mod]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16.1]"
+    versionRange="[1.16.3,1.17)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.jp.tdn.japanese_food_mod]]
-    modId="patchouli"
-    mandatory=true
-    versionRange="[1.16.5-37,)"
-    side="BOTH"
+#[[dependencies.jp.tdn.japanese_food_mod]]
+#    modId="patchouli"
+#    mandatory=true
+#    versionRange="[1.16.5-37,)"
+#    side="BOTH"

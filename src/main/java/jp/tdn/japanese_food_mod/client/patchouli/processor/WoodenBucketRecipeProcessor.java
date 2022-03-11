@@ -1,17 +1,6 @@
 package jp.tdn.japanese_food_mod.client.patchouli.processor;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.util.ResourceLocation;
-import vazkii.patchouli.api.IComponentProcessor;
-import vazkii.patchouli.api.IVariable;
-import vazkii.patchouli.api.IVariableProvider;
-
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
+/*
 public class WoodenBucketRecipeProcessor implements IComponentProcessor {
     private IRecipe<?> recipe;
 
@@ -45,4 +34,4 @@ public class WoodenBucketRecipeProcessor implements IComponentProcessor {
         }
         return null;
     }
-}
+}*/

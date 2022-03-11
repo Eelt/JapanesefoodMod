@@ -28,13 +28,13 @@ public class JPRenderRegistry {
     }
 
     public static void registryRenderLayer(){
-        RenderTypeLookup.setRenderLayer(JPBlocks.CROP_GRASS.get(), RenderType.getCutout());
-        RenderTypeLookup.setRenderLayer(JPBlocks.LEEK_PLANT.get(), RenderType.getCutout());
-        RenderTypeLookup.setRenderLayer(JPBlocks.RADISH_SPROUT_PLANT.get(), RenderType.getCutout());
-        RenderTypeLookup.setRenderLayer(JPBlocks.RICE_PLANT.get(), RenderType.getCutout());
-        RenderTypeLookup.setRenderLayer(JPBlocks.SOY_PLANT.get(), RenderType.getCutout());
-        RenderTypeLookup.setRenderLayer(JPBlocks.FURNACE_CAULDRON.get(), RenderType.getCutout());
-        RenderTypeLookup.setRenderLayer(JPBlocks.AZUKI_PLANT.get(), RenderType.getCutout());
-        RenderTypeLookup.setRenderLayer(JPBlocks.WAKAME_BLOCK.get(), RenderType.getCutout());
+        RenderTypeLookup.setRenderLayer(JPBlocks.CROP_GRASS.get(), RenderType.cutout());
+        RenderTypeLookup.setRenderLayer(JPBlocks.LEEK_PLANT.get(), RenderType.cutout());
+        RenderTypeLookup.setRenderLayer(JPBlocks.RADISH_SPROUT_PLANT.get(), RenderType.cutout());
+        RenderTypeLookup.setRenderLayer(JPBlocks.RICE_PLANT.get(), RenderType.cutout());
+        RenderTypeLookup.setRenderLayer(JPBlocks.SOY_PLANT.get(), RenderType.cutout());
+        RenderTypeLookup.setRenderLayer(JPBlocks.FURNACE_CAULDRON.get(), RenderType.cutout());
+        RenderTypeLookup.setRenderLayer(JPBlocks.AZUKI_PLANT.get(), RenderType.cutout());
+        RenderTypeLookup.setRenderLayer(JPBlocks.WAKAME_BLOCK.get(), RenderType.cutout());
     }
 }

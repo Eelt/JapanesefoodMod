@@ -20,7 +20,7 @@ public class AnglerfishEntityRender extends MobRenderer<AnglerfishEntity, Angler
 
     @Nullable
     @Override
-    public ResourceLocation getEntityTexture(@Nonnull AnglerfishEntity Entity) {
+    public ResourceLocation getTextureLocation(@Nonnull AnglerfishEntity Entity) {
         return new ResourceLocation(JapaneseFoodMod.MOD_ID + ":textures/entities/anglerfish.png");
     }
 }

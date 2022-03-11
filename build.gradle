@@ -120,7 +120,7 @@ dependencies {
 
     // These dependencies get remapped to your current MCP mappings
     // deobf 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-    compile fg.deobf("vazkii.patchouli:Patchouli:${project.patchouli_version}")
+    // compile fg.deobf("vazkii.patchouli:Patchouli:${project.patchouli_version}")
 
     // JEI
     if (project.hasProperty("jei_version")) {
